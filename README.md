@@ -1,6 +1,6 @@
 # Cheat Code Menu
 
-An SKSE plugin framework for in-game cheat code menus, powered by SkyUILib UI components.
+An SKSE plugin framework for in-game cheat code menus, powered by UIExtensions.
 
 ## Features
 
@@ -16,7 +16,7 @@ An SKSE plugin framework for in-game cheat code menus, powered by SkyUILib UI co
 - Skyrim SE/AE (1.5.97+ / 1.6.x)
 - [SKSE64](https://skse.silverlock.org/)
 - [Address Library for SKSE](https://www.nexusmods.com/skyrimspecialedition/mods/32444)
-- [SkyUI](https://www.nexusmods.com/skyrimspecialedition/mods/12604) (for SkyUILib UI)
+- [UIExtensions](https://www.nexusmods.com/skyrimspecialedition/mods/17561) by expired6978
 
 ## Installation
 
@@ -24,8 +24,7 @@ An SKSE plugin framework for in-game cheat code menus, powered by SkyUILib UI co
 2. Copy `CheatCodeMenu.dll` to `Data/SKSE/Plugins/`
 3. Copy `CheatCodeMenu.ini` to `Data/SKSE/Plugins/`
 4. Copy `CheatCodeMenu.esp` to `Data/`
-5. Copy `Interface/uilib/` folder to `Data/Interface/`
-6. Copy compiled scripts to `Data/Scripts/`
+5. Copy compiled scripts to `Data/Scripts/`
 
 ## Configuration
 
@@ -97,7 +96,7 @@ xmake build
 ## Credits
 
 - Template based on [CLibDT](https://github.com/cavy8/CLibDT) and [PrismaUI](https://github.com/PrismaUI-SKSE/PrismaUI-Example-Plugin)
-- [SkyUILib](https://github.com/schlangster/skyui-lib) by schlangster - UI components
+- [UIExtensions](https://www.nexusmods.com/skyrimspecialedition/mods/17561) by expired6978 - UI menu components
 - [CommonLibSSE-NG](https://github.com/CharmedBaryon/CommonLibSSE-NG) - SKSE framework
 - [nlohmann/json](https://github.com/nlohmann/json) - JSON parsing
 

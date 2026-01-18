@@ -1,0 +1,31 @@
+#pragma once
+
+#include "CheatDef.h"
+#include <string>
+#include <vector>
+
+namespace CheatCodeMenu {
+class CheatExecutor {
+public:
+  static CheatExecutor *GetSingleton();
+
+  // Execute a list of actions
+  void ExecuteActions(const std::vector<CheatAction> &actions);
+
+  // Activate a cheat by ID
+  // Returns true if activation succeeded
+  bool ActivateCheat(const std::string &id);
+
+private:
+  CheatExecutor() = default;
+  ~CheatExecutor() = default;
+
+  CheatExecutor(const CheatExecutor &) = delete;
+  CheatExecutor(CheatExecutor &&) = delete;
+  CheatExecutor &operator=(const CheatExecutor &) = delete;
+  CheatExecutor &operator=(CheatExecutor &&) = delete;
+
+  // Individual action handlers
+  void ExecuteConsoleCommand(const std::string &command);
+};
+} // namespace CheatCodeMenu

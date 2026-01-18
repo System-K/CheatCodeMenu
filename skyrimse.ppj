@@ -1,8 +1,8 @@
-<?xml version='1.0'?><!-- Game is either sse, tesv, or fo4 -->
+<?xml version='1.0'?>
 <PapyrusProject xmlns="PapyrusProject.xsd" 
     Flags="TESV_Papyrus_Flags.flg" 
     Game="sse" 
-    Output="Scripts" 
+    Output="Data\Scripts" 
     Optimize="false" 
     Release="false" 
     Final="false">

@@ -12,6 +12,8 @@ set_toolset('msvc', 'ninja')
 
 add_rules('mode.debug', 'mode.releasedbg', 'mode.release')
 
+add_requires('nlohmann_json')
+
 option('skyrim_se')
     set_default(false)
     set_showmenu(true)
@@ -36,6 +38,7 @@ end
 
 target('CheatCodeMenu')
     add_deps('commonlibsse-ng')
+    add_packages('nlohmann_json')
 
     local runtime = 'se_ae'
     if has_config('skyrim_vr') then
@@ -59,10 +62,8 @@ target('CheatCodeMenu')
     add_includedirs(
         'src',
         '$(projectdir)',
-        '$(projectdir)/ClibUtil',
-        '$(projectdir)/ClibUtil/detail',
-        '$(projectdir)/xbyak',
-        '$(projectdir)/simpleini'
+        '$(projectdir)/ClibUtil/include',
+        '$(projectdir)/xbyak'
     )
 
     set_pcxxheader('src/pch.h')

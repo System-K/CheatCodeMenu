@@ -6,6 +6,17 @@
 #include <SKSE/SKSE.h>
 
 #include <fstream>
+#include <string>
+#include <vector>
+#include <map>
+#include <unordered_map>
+#include <memory>
+#include <mutex>
+#include <shared_mutex>
+#include <atomic>
+#include <functional>
+#include <algorithm>
+#include <cctype>
 
 #ifdef NDEBUG
 #	include <spdlog/sinks/basic_file_sink.h>
@@ -13,6 +24,8 @@
 #	include <spdlog/sinks/msvc_sink.h>
 #endif
 #pragma warning(pop)
+
+#include <nlohmann/json.hpp>
 
 using namespace std::literals;
 using namespace std;

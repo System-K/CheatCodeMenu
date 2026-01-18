@@ -1,0 +1,259 @@
+{
+    "schemaVersion": 1,
+    "cheats": [
+        {
+            "id": "sample.godmode",
+            "displayName": "God Mode",
+            "lockedName": "??? Divine Power",
+            "code": "iddqd",
+            "defaultState": "locked",
+            "mode": "toggle",
+            "enableActions": [
+                {
+                    "type": "console",
+                    "params": {
+                        "command": "tgm"
+                    }
+                }
+            ],
+            "disableActions": [
+                {
+                    "type": "console",
+                    "params": {
+                        "command": "tgm"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "sample.noclip",
+            "displayName": "No Clip Mode",
+            "lockedName": "??? Ghost Walk",
+            "code": "idspispopd",
+            "defaultState": "locked",
+            "mode": "toggle",
+            "enableActions": [
+                {
+                    "type": "console",
+                    "params": {
+                        "command": "tcl"
+                    }
+                }
+            ],
+            "disableActions": [
+                {
+                    "type": "console",
+                    "params": {
+                        "command": "tcl"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "sample.killall",
+            "displayName": "Kill All Nearby",
+            "lockedName": "??? Mass Destruction",
+            "code": "genocide",
+            "defaultState": "hidden",
+            "mode": "trigger",
+            "actions": [
+                {
+                    "type": "console",
+                    "params": {
+                        "command": "killall"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "sample.richquick",
+            "displayName": "Get Rich Quick (+10000 Gold)",
+            "code": "showmethemoney",
+            "defaultState": "unlocked",
+            "mode": "trigger",
+            "actions": [
+                {
+                    "type": "console",
+                    "params": {
+                        "command": "player.additem f 10000"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "sample.maxstats",
+            "displayName": "Maximize All Stats",
+            "lockedName": "??? Ultimate Power",
+            "code": "poweroverwhelming",
+            "defaultState": "locked",
+            "mode": "trigger",
+            "actions": [
+                {
+                    "type": "console",
+                    "params": {
+                        "command": "player.setav health 1000"
+                    }
+                },
+                {
+                    "type": "console",
+                    "params": {
+                        "command": "player.setav stamina 1000"
+                    }
+                },
+                {
+                    "type": "console",
+                    "params": {
+                        "command": "player.setav magicka 1000"
+                    }
+                },
+                {
+                    "type": "console",
+                    "params": {
+                        "command": "player.setav speedmult 150"
+                    }
+                },
+                {
+                    "type": "console",
+                    "params": {
+                        "command": "player.setav carryweight 9999"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "sample.unlockall",
+            "displayName": "Unlock All Shouts",
+            "code": "fusrodah",
+            "defaultState": "hidden",
+            "mode": "trigger",
+            "actions": [
+                {
+                    "type": "console",
+                    "params": {
+                        "command": "player.teachword 13e22"
+                    }
+                },
+                {
+                    "type": "console",
+                    "params": {
+                        "command": "player.teachword 13e23"
+                    }
+                },
+                {
+                    "type": "console",
+                    "params": {
+                        "command": "player.teachword 13e24"
+                    }
+                },
+                {
+                    "type": "console",
+                    "params": {
+                        "command": "player.unlockword 13e22"
+                    }
+                },
+                {
+                    "type": "console",
+                    "params": {
+                        "command": "player.unlockword 13e23"
+                    }
+                },
+                {
+                    "type": "console",
+                    "params": {
+                        "command": "player.unlockword 13e24"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "sample.timescale",
+            "displayName": "Slow Motion (Toggle)",
+            "lockedName": "??? Time Manipulation",
+            "code": "matrix",
+            "defaultState": "locked",
+            "mode": "toggle",
+            "enableActions": [
+                {
+                    "type": "console",
+                    "params": {
+                        "command": "set timescale to 1"
+                    }
+                },
+                {
+                    "type": "console",
+                    "params": {
+                        "command": "sgtm 0.5"
+                    }
+                }
+            ],
+            "disableActions": [
+                {
+                    "type": "console",
+                    "params": {
+                        "command": "set timescale to 20"
+                    }
+                },
+                {
+                    "type": "console",
+                    "params": {
+                        "command": "sgtm 1"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "sample.levelup",
+            "displayName": "Level Up (+5 Levels)",
+            "code": "lvlup",
+            "defaultState": "unlocked",
+            "mode": "trigger",
+            "actions": [
+                {
+                    "type": "console",
+                    "params": {
+                        "command": "player.advlevel"
+                    }
+                },
+                {
+                    "type": "console",
+                    "params": {
+                        "command": "player.advlevel"
+                    }
+                },
+                {
+                    "type": "console",
+                    "params": {
+                        "command": "player.advlevel"
+                    }
+                },
+                {
+                    "type": "console",
+                    "params": {
+                        "command": "player.advlevel"
+                    }
+                },
+                {
+                    "type": "console",
+                    "params": {
+                        "command": "player.advlevel"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "sample.weather",
+            "displayName": "Clear Weather",
+            "code": "sunny",
+            "defaultState": "unlocked",
+            "mode": "trigger",
+            "actions": [
+                {
+                    "type": "console",
+                    "params": {
+                        "command": "fw 81a"
+                    }
+                }
+            ]
+        }
+    ]
+}

@@ -95,7 +95,7 @@ xmake build
 
 ## Credits
 
-- Template based on [CLibDT](https://github.com/cavy8/CLibDT) and [PrismaUI](https://github.com/PrismaUI-SKSE/PrismaUI-Example-Plugin)
+- Template based on CLibDT and [PrismaUI](https://github.com/PrismaUI-SKSE/PrismaUI-Example-Plugin)
 - [UIExtensions](https://www.nexusmods.com/skyrimspecialedition/mods/17561) by expired6978 - UI menu components
 - [CommonLibSSE-NG](https://github.com/CharmedBaryon/CommonLibSSE-NG) - SKSE framework
 - [nlohmann/json](https://github.com/nlohmann/json) - JSON parsing

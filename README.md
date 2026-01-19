@@ -26,6 +26,10 @@ An SKSE plugin framework for in-game cheat code menus, powered by UIExtensions.
 4. Copy `CheatCodeMenu.esp` to `Data/`
 5. Copy compiled scripts to `Data/Scripts/`
 
+## Flash Compilation
+1. Any edits to CCMCallbacks.as will need to be copied to frame 1 of the fla file.
+2. Compile using Flash CS6
+
 ## Configuration
 
 Edit `Data/SKSE/Plugins/CheatCodeMenu.ini`:

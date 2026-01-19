@@ -16,3 +16,5 @@ compile_commands.json
 build_log.txt
 build_log2.txt
 config_log.txt
+Source/Scripts/BestiaryUI*
+FLA/BestiaryUI*

@@ -97,6 +97,7 @@ xmake build
 
 - Template based on CLibDT and [PrismaUI](https://github.com/PrismaUI-SKSE/PrismaUI-Example-Plugin)
 - [UIExtensions](https://www.nexusmods.com/skyrimspecialedition/mods/17561) by expired6978 - UI menu components
+- [Dragonborn's Bestiary - Show in UI](https://www.nexusmods.com/skyrimspecialedition/mods/161050) - Pause menu injection technique
 - [CommonLibSSE-NG](https://github.com/CharmedBaryon/CommonLibSSE-NG) - SKSE framework
 - [nlohmann/json](https://github.com/nlohmann/json) - JSON parsing
 

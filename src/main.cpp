@@ -1,9 +1,9 @@
 #include "HotkeyManager.h"
 #include "Serialization.h"
+#include "SystemMenuInjector.h"
 #include "cheat/CheatRegistry.h"
 #include "cheat/CheatStateStore.h"
 #include "papyrus/PapyrusAPI.h"
-
 
 using namespace CheatCodeMenu;
 
@@ -26,6 +26,9 @@ static void SKSEMessageHandler(SKSE::MessagingInterface::Message *message) {
 
     // Register hotkey input sink
     HotkeyManager::GetSingleton()->RegisterSink();
+
+    // Register System menu injector for pause menu button
+    SystemMenuInjector::GetSingleton()->Register();
 
     logger::info("CheatCodeMenu initialized successfully");
     break;

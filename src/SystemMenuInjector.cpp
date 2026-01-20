@@ -1,5 +1,6 @@
 #include "SystemMenuInjector.h"
 #include "pch.h"
+#include <CLIBUtil/detail/SimpleIni.h>
 
 namespace CheatCodeMenu {
 
@@ -80,7 +81,7 @@ bool SystemMenuInjector::InjectMenuEntry() {
     return false;
   }
 
-  // Find the index of $LOAD to insert after it
+  // Find the index of $CONTROLS to insert after it
   std::uint32_t arraySize = entryList.GetArraySize();
   std::uint32_t insertIndex = arraySize; // Default to end
 
@@ -90,10 +91,10 @@ bool SystemMenuInjector::InjectMenuEntry() {
       RE::GFxValue textValue;
       if (entry.GetMember("text", &textValue) && textValue.IsString()) {
         const char *text = textValue.GetString();
-        if (text && std::strcmp(text, "$LOAD") == 0) {
-          insertIndex = i + 1; // Insert after LOAD
-          logger::info("[CCM] Found $LOAD at index {}, will insert at {}", i,
-                       insertIndex);
+        if (text && std::strcmp(text, "$CONTROLS") == 0) {
+          insertIndex = i + 1; // Insert after CONTROLS
+          logger::info("[CCM] Found $CONTROLS at index {}, will insert at {}",
+                       i, insertIndex);
           break;
         }
       }
@@ -104,8 +105,22 @@ bool SystemMenuInjector::InjectMenuEntry() {
   RE::GFxValue newEntry;
   movie->CreateObject(&newEntry);
 
+  // Get button text from INI (allows localization/customization)
+  std::string buttonTextStr = "Cheat Codes"; // Default
+
+  CSimpleIniA ini;
+  ini.SetUnicode();
+  auto iniPath = std::filesystem::path("Data/SKSE/Plugins/CheatCodeMenu.ini");
+  if (ini.LoadFile(iniPath.string().c_str()) >= 0) {
+    const char *iniValue = ini.GetValue("Menu", "ButtonText", nullptr);
+    if (iniValue && iniValue[0] != '\0') {
+      buttonTextStr = iniValue;
+      logger::info("[CCM] Using INI button text: {}", buttonTextStr);
+    }
+  }
+
   RE::GFxValue textValue;
-  movie->CreateString(&textValue, "CHEAT CODES");
+  movie->CreateString(&textValue, buttonTextStr.c_str());
   newEntry.SetMember("text", textValue);
 
   RE::GFxValue isCCMValue(true);
@@ -140,22 +155,8 @@ bool SystemMenuInjector::InjectMenuEntry() {
   }
   systemPage.SetMember("CCM_callback", callbackFunc);
 
-  // Inject a wrapper function via ActionScript invoke
-  // This calls our callback first, then the original if not handled
-  const char *wrapperScript =
-      "function(event) {"
-      "  if (event.entry.isCCM) {"
-      "    this.CCM_callback.call(this, event);"
-      "  } else {"
-      "    if (this.CCM_originalOnCategoryButtonPress) {"
-      "      this.CCM_originalOnCategoryButtonPress.call(this, event);"
-      "    }"
-      "  }"
-      "}";
-
-  // We can't directly eval ActionScript from C++, so we'll use a different
-  // approach: Register the callback on the Flash global scope and let the SWF
-  // call it
+  // Register the callback on the Flash global scope (SWF handles the actual
+  // button press callback hooking)
   movie->SetVariable("_global.CCM_ButtonCallback", callbackFunc);
 
   // Call InvalidateData to refresh the list
@@ -228,7 +229,7 @@ MenuEventSink::ProcessEvent(const RE::MenuOpenCloseEvent *a_event,
 // CCMButtonCallback
 // ============================================
 
-void CCMButtonCallback::Call(Params &a_params) {
+void CCMButtonCallback::Call(Params & /*a_params*/) {
   logger::info("[CCM] Cheat Codes button pressed!");
 
   // Close the Journal Menu

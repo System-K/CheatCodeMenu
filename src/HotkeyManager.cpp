@@ -49,10 +49,6 @@ void HotkeyManager::RegisterSink() {
   }
 }
 
-// ============================================
-// HotkeyEventSink
-// ============================================
-
 HotkeyEventSink *HotkeyEventSink::GetSingleton() {
   static HotkeyEventSink singleton;
   return &singleton;

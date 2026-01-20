@@ -4,10 +4,6 @@
 
 namespace CheatCodeMenu {
 
-// ============================================
-// SystemMenuInjector
-// ============================================
-
 SystemMenuInjector *SystemMenuInjector::GetSingleton() {
   static SystemMenuInjector singleton;
   return &singleton;
@@ -24,9 +20,8 @@ void SystemMenuInjector::Register() {
 }
 
 bool SystemMenuInjector::InjectMenuEntry() {
-  if (m_injected) {
-    return true; // Already injected this session
-  }
+  if (m_injected)
+    return true;
 
   auto *ui = RE::UI::GetSingleton();
   if (!ui) {
@@ -46,7 +41,6 @@ bool SystemMenuInjector::InjectMenuEntry() {
     return false;
   }
 
-  // Navigate to the System page's CategoryList
   // Path:
   // _root.QuestJournalFader.Menu_mc.SystemFader.Page_mc.CategoryList_mc.List_mc
   RE::GFxValue systemPage;
@@ -105,8 +99,8 @@ bool SystemMenuInjector::InjectMenuEntry() {
   RE::GFxValue newEntry;
   movie->CreateObject(&newEntry);
 
-  // Get button text from INI (allows localization/customization)
-  std::string buttonTextStr = "Cheat Codes"; // Default
+  // Get button text from INI
+  std::string buttonTextStr = "Cheat Codes";
 
   CSimpleIniA ini;
   ini.SetUnicode();
@@ -126,8 +120,8 @@ bool SystemMenuInjector::InjectMenuEntry() {
   RE::GFxValue isCCMValue(true);
   newEntry.SetMember("isCCM", isCCMValue);
 
-  // Insert the entry at the correct position
-  // Since GFxValue doesn't have insert, we need to shift elements
+  // Insert entry at correct position (shift elements since GFxValue lacks
+  // insert)
   if (insertIndex < arraySize) {
     // Shift elements from insertIndex to end by 1
     for (std::uint32_t i = arraySize; i > insertIndex; --i) {
@@ -141,22 +135,18 @@ bool SystemMenuInjector::InjectMenuEntry() {
     entryList.PushBack(newEntry);
   }
 
-  // Register callback for button press
-  // We'll use a GFxFunctionHandler to intercept the button press
+  // Register C++ callback handler
   auto *callbackHandler = new CCMButtonCallback();
   RE::GFxValue callbackFunc;
   movie->CreateFunction(&callbackFunc, callbackHandler);
 
   // Store original onCategoryButtonPress and replace with our wrapper
   RE::GFxValue originalCallback;
-  if (systemPage.GetMember("onCategoryButtonPress", &originalCallback)) {
-    // Store original for calling later
+  if (systemPage.GetMember("onCategoryButtonPress", &originalCallback))
     systemPage.SetMember("CCM_originalOnCategoryButtonPress", originalCallback);
-  }
   systemPage.SetMember("CCM_callback", callbackFunc);
 
-  // Register the callback on the Flash global scope (SWF handles the actual
-  // button press callback hooking)
+  // Register callback on Flash global scope (SWF hooks button press)
   movie->SetVariable("_global.CCM_ButtonCallback", callbackFunc);
 
   // Call InvalidateData to refresh the list
@@ -186,15 +176,9 @@ void SystemMenuInjector::TryInjectWithRetry(int retryCount) {
   auto *injector = this;
   int nextRetry = retryCount + 1;
 
-  SKSE::GetTaskInterface()->AddTask([injector, nextRetry]() {
-    // Add a small delay by just scheduling another task
-    injector->TryInjectWithRetry(nextRetry);
-  });
+  SKSE::GetTaskInterface()->AddTask(
+      [injector, nextRetry]() { injector->TryInjectWithRetry(nextRetry); });
 }
-
-// ============================================
-// MenuEventSink
-// ============================================
 
 MenuEventSink *MenuEventSink::GetSingleton() {
   static MenuEventSink singleton;
@@ -212,8 +196,7 @@ MenuEventSink::ProcessEvent(const RE::MenuOpenCloseEvent *a_event,
 
   if (a_event->menuName == RE::JournalMenu::MENU_NAME) {
     if (a_event->opening) {
-      logger::info("[CCM] Journal Menu opened, will attempt injection");
-      // Try injection with retry logic
+      logger::info("[CCM] Journal Menu opened");
       injector->TryInjectWithRetry(0);
     } else {
       // Menu closing - reset injection state
@@ -224,10 +207,6 @@ MenuEventSink::ProcessEvent(const RE::MenuOpenCloseEvent *a_event,
 
   return RE::BSEventNotifyControl::kContinue;
 }
-
-// ============================================
-// CCMButtonCallback
-// ============================================
 
 void CCMButtonCallback::Call(Params & /*a_params*/) {
   logger::info("[CCM] Cheat Codes button pressed!");
@@ -242,8 +221,7 @@ void CCMButtonCallback::Call(Params & /*a_params*/) {
     }
   }
 
-  // Send the mod event to open the Cheat Code Menu
-  // This is picked up by Papyrus to open the actual menu
+  // Send mod event to open Cheat Code Menu
   auto *eventSource = SKSE::GetModCallbackEventSource();
   if (eventSource) {
     SKSE::ModCallbackEvent event;

@@ -100,7 +100,7 @@ bool SystemMenuInjector::InjectMenuEntry() {
   movie->CreateObject(&newEntry);
 
   // Get button text from INI
-  std::string buttonTextStr = "Cheat Codes";
+  std::string buttonTextStr = "CHEAT CODES";
 
   CSimpleIniA ini;
   ini.SetUnicode();

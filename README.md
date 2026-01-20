@@ -25,6 +25,7 @@ An SKSE plugin framework for in-game cheat code menus, powered by UIExtensions.
 3. Copy `CheatCodeMenu.ini` to `Data/SKSE/Plugins/`
 4. Copy `CheatCodeMenu.esp` to `Data/`
 5. Copy compiled scripts to `Data/Scripts/`
+6. Copy `CheatCodeMenu.swf` to `Data/Interface/`
 
 ## Flash Compilation
 1. Any edits to CCMCallbacks.as will need to be copied to frame 1 of the fla file.
@@ -36,10 +37,17 @@ Edit `Data/SKSE/Plugins/CheatCodeMenu.ini`:
 
 ```ini
 [Hotkey]
-; DirectX scan code (default: F9 = 0x43)
-ScanCode = 0x43
+; DirectX scan code for menu hotkey
+; Insert = 0xD2 (67 decimal)
+; See: https://learn.microsoft.com/en-us/previous-versions/visualstudio/visual-studio-6.0/aa299374(v=vs.60)
+ScanCode = -1
+
+[Menu]
+; Text displayed on the System menu button
+ButtonText = CHEAT CODES
 
 [Debug]
+; Enable verbose logging (0 = off, 1 = on)
 VerboseLogging = 0
 ```
 
@@ -107,4 +115,4 @@ xmake build
 
 ## License
 
-GPL-3.0
+LGPL-3.0

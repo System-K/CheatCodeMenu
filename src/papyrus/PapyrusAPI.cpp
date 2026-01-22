@@ -3,7 +3,6 @@
 #include "cheat/CheatRegistry.h"
 #include "cheat/CheatStateStore.h"
 
-
 namespace CheatCodeMenu::PapyrusAPI {
 constexpr std::string_view SCRIPT_NAME = "CCM_Native";
 constexpr std::string_view ENTER_CODE_KEY = "__enter_code__";
@@ -12,11 +11,33 @@ constexpr std::string_view ENTER_CODE_KEY = "__enter_code__";
 std::vector<std::string> GetMenuOptionLabels(RE::StaticFunctionTag *) {
   std::vector<std::string> labels;
 
-  // First entry is always "Enter Code..."
-  labels.push_back("Enter Code...");
-
   auto *registry = CheatRegistry::GetSingleton();
   auto *stateStore = CheatStateStore::GetSingleton();
+
+  // Check if no cheats are installed
+  if (registry->GetAllIds().empty()) {
+    labels.push_back("No Cheats Installed");
+    return labels;
+  }
+
+  // Count non-unlocked cheats (locked or hidden)
+  bool hasNonUnlockedCheats = false;
+  for (const auto &id : registry->GetAllIds()) {
+    const auto *def = registry->GetCheat(id);
+    if (!def)
+      continue;
+
+    CheatState state = stateStore->GetState(id);
+    if (state != CheatState::Unlocked) {
+      hasNonUnlockedCheats = true;
+      break;
+    }
+  }
+
+  // Show "Enter Code..." if there are any non-unlocked cheats
+  if (hasNonUnlockedCheats) {
+    labels.push_back("Enter Code...");
+  }
 
   for (const auto &id : registry->GetAllIds()) {
     const auto *def = registry->GetCheat(id);
@@ -31,7 +52,6 @@ std::vector<std::string> GetMenuOptionLabels(RE::StaticFunctionTag *) {
 
     // Build label
     if (state == CheatState::Unlocked) {
-      // Show display name, with toggle indicator if applicable
       if (def->mode == CheatMode::Toggle) {
         bool enabled = stateStore->IsToggleEnabled(id);
         labels.push_back(def->displayName + (enabled ? " [ON]" : " [OFF]"));
@@ -39,7 +59,6 @@ std::vector<std::string> GetMenuOptionLabels(RE::StaticFunctionTag *) {
         labels.push_back(def->displayName);
       }
     } else {
-      // Locked - show locked name
       labels.push_back(def->lockedName + " (Locked)");
     }
   }
@@ -51,11 +70,33 @@ std::vector<std::string> GetMenuOptionLabels(RE::StaticFunctionTag *) {
 std::vector<std::string> GetMenuOptionKeys(RE::StaticFunctionTag *) {
   std::vector<std::string> keys;
 
-  // First entry corresponds to "Enter Code..."
-  keys.push_back(std::string(ENTER_CODE_KEY));
-
   auto *registry = CheatRegistry::GetSingleton();
   auto *stateStore = CheatStateStore::GetSingleton();
+
+  // Check if no cheats are installed
+  if (registry->GetAllIds().empty()) {
+    keys.push_back(""); // Empty key for "No Cheats Installed"
+    return keys;
+  }
+
+  // Count non-unlocked cheats (locked or hidden)
+  bool hasNonUnlockedCheats = false;
+  for (const auto &id : registry->GetAllIds()) {
+    const auto *def = registry->GetCheat(id);
+    if (!def)
+      continue;
+
+    CheatState state = stateStore->GetState(id);
+    if (state != CheatState::Unlocked) {
+      hasNonUnlockedCheats = true;
+      break;
+    }
+  }
+
+  // Add "Enter Code..." key if there are any non-unlocked cheats
+  if (hasNonUnlockedCheats) {
+    keys.push_back(std::string(ENTER_CODE_KEY));
+  }
 
   for (const auto &id : registry->GetAllIds()) {
     const auto *def = registry->GetCheat(id);

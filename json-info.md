@@ -51,7 +51,7 @@ Files must have a `.json` extension. Multiple JSON files are supported.
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `type` | string | **Yes** | Action type. Currently only `"console"` is supported. |
+| `type` | string | **Yes** | Action type: `"console"` or `"modevent"`. |
 | `params` | object | **Yes** | Type-specific parameters. |
 
 ### Console Action
@@ -68,6 +68,29 @@ For `"console"` type actions:
 ```
 
 The `command` parameter is required and should contain a valid Skyrim console command.
+
+### ModEvent Action
+
+For `"modevent"` type actions (sends SKSE mod events for inter-plugin communication):
+
+```json
+{
+  "type": "modevent",
+  "params": {
+    "eventName": "MyPlugin_ToggleFeature",
+    "strArg": "optional_string",
+    "numArg": 1.0
+  }
+}
+```
+
+| Param | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `eventName` | string | **Yes** | - | Name of the SKSE mod event to send. |
+| `strArg` | string | No | `""` | String argument passed with the event. |
+| `numArg` | number | No | `0.0` | Numeric argument passed with the event. |
+
+See the [Integration Guide](#integration-guide) for how other SKSE plugins can listen for these events.
 
 ## Complete Example
 
@@ -132,3 +155,161 @@ The `command` parameter is required and should contain a valid Skyrim console co
 - **Invalid files are logged and skipped** - they don't prevent other files from loading
 - **Duplicate IDs are rejected** - only the first cheat with a given ID is loaded
 - **Action arrays execute sequentially** - multiple commands run in order
+
+## Integration Guide
+
+### For SKSE Plugin Developers
+
+To integrate your SKSE plugin with CheatCodeMenu, listen for SKSE mod events:
+
+#### 1. Create an Event Sink
+
+```cpp
+class ModEventSink : public RE::BSTEventSink<SKSE::ModCallbackEvent> {
+public:
+  static ModEventSink* GetSingleton() {
+    static ModEventSink singleton;
+    return &singleton;
+  }
+
+  RE::BSEventNotifyControl ProcessEvent(
+      const SKSE::ModCallbackEvent* a_event,
+      RE::BSTEventSource<SKSE::ModCallbackEvent>*) override {
+    if (!a_event) return RE::BSEventNotifyControl::kContinue;
+
+    // Check for your event name
+    if (a_event->eventName == "MyPlugin_Toggle") {
+      // Handle the event
+      // a_event->strArg contains the string argument
+      // a_event->numArg contains the numeric argument
+      MyPlugin::Toggle();
+    }
+
+    return RE::BSEventNotifyControl::kContinue;
+  }
+
+private:
+  ModEventSink() = default;
+};
+```
+
+#### 2. Register the Event Sink
+
+In your plugin's `kDataLoaded` message handler:
+
+```cpp
+void MessageHandler(SKSE::MessagingInterface::Message* msg) {
+  if (msg->type == SKSE::MessagingInterface::kDataLoaded) {
+    auto* eventSource = SKSE::GetModCallbackEventSource();
+    if (eventSource) {
+      eventSource->AddEventSink(ModEventSink::GetSingleton());
+    }
+  }
+}
+```
+
+#### 3. Define Your Cheat JSON
+
+```json
+{
+  "id": "myplugin.toggle",
+  "displayName": "My Plugin Toggle",
+  "code": "mycode",
+  "defaultState": "unlocked",
+  "mode": "toggle",
+  "enableActions": [
+    { "type": "modevent", "params": { "eventName": "MyPlugin_Toggle", "numArg": 1 } }
+  ],
+  "disableActions": [
+    { "type": "modevent", "params": { "eventName": "MyPlugin_Toggle", "numArg": 0 } }
+  ]
+}
+```
+
+### Using numArg for Toggle State
+
+Use `numArg` to differentiate between enable/disable:
+- `"numArg": 1` for enable actions
+- `"numArg": 0` for disable actions
+
+Check the value in your event handler to determine the action.
+
+### BigHeadMode Integration Example
+
+To integrate BigHeadMode with CheatCodeMenu:
+
+#### 1. Add to BigHeadMode's main.cpp
+
+Add a mod event sink class:
+
+```cpp
+class CCMEventSink : public RE::BSTEventSink<SKSE::ModCallbackEvent> {
+public:
+  static CCMEventSink* GetSingleton() {
+    static CCMEventSink singleton;
+    return &singleton;
+  }
+
+  RE::BSEventNotifyControl ProcessEvent(
+      const SKSE::ModCallbackEvent* a_event,
+      RE::BSTEventSource<SKSE::ModCallbackEvent>*) override {
+    if (!a_event) return RE::BSEventNotifyControl::kContinue;
+
+    if (a_event->eventName == "BigHeadMode_Toggle") {
+      bool enable = (a_event->numArg > 0.5f);
+      
+      if (enable && !Settings::bEnabled) {
+        Settings::Toggle();
+        HeadScaler::ScaleAllLoadedActors();
+        HeadScaler::MarkPendingPlayerScale();
+      } else if (!enable && Settings::bEnabled) {
+        Settings::Toggle();
+        HeadScaler::ResetAllHeads();
+        HeadScaler::MarkPendingPlayerReset();
+      }
+    }
+
+    return RE::BSEventNotifyControl::kContinue;
+  }
+
+private:
+  CCMEventSink() = default;
+};
+```
+
+#### 2. Register in SKSEMessageHandler
+
+In your `kDataLoaded` handler, add:
+
+```cpp
+auto* eventSource = SKSE::GetModCallbackEventSource();
+if (eventSource) {
+  eventSource->AddEventSink(CCMEventSink::GetSingleton());
+  logger::info("Registered CheatCodeMenu event listener");
+}
+```
+
+#### 3. Create the Cheat JSON
+
+Create a file in `Data/SKSE/Plugins/CheatCodeMenu/cheats/`:
+
+```json
+{
+  "schemaVersion": 1,
+  "cheats": [
+    {
+      "id": "cavy8.bighead",
+      "displayName": "Big Head Mode",
+      "code": "bighead",
+      "defaultState": "locked",
+      "mode": "toggle",
+      "enableActions": [
+        { "type": "modevent", "params": { "eventName": "BigHeadMode_Toggle", "numArg": 1 } }
+      ],
+      "disableActions": [
+        { "type": "modevent", "params": { "eventName": "BigHeadMode_Toggle", "numArg": 0 } }
+      ]
+    }
+  ]
+}
+```

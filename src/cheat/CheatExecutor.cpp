@@ -17,6 +17,26 @@ void CheatExecutor::ExecuteActions(const std::vector<CheatAction> &actions) {
       } else {
         logger::warn("Console action missing 'command' parameter");
       }
+    } else if (action.type == "modevent") {
+      if (action.params.contains("eventName") &&
+          action.params["eventName"].is_string()) {
+        std::string eventName = action.params["eventName"].get<std::string>();
+        std::string strArg = "";
+        float numArg = 0.0f;
+
+        if (action.params.contains("strArg") &&
+            action.params["strArg"].is_string()) {
+          strArg = action.params["strArg"].get<std::string>();
+        }
+        if (action.params.contains("numArg") &&
+            action.params["numArg"].is_number()) {
+          numArg = action.params["numArg"].get<float>();
+        }
+
+        SendModEvent(eventName, strArg, numArg);
+      } else {
+        logger::warn("ModEvent action missing 'eventName' parameter");
+      }
     } else {
       logger::warn("Unknown action type: {}", action.type);
     }
@@ -70,16 +90,43 @@ void CheatExecutor::ExecuteConsoleCommand(const std::string &command) {
 
   logger::info("Executing console command: {}", command);
 
-  // Execute via Script::Execute
-  const auto scriptFactory =
-      RE::IFormFactory::GetConcreteFormFactoryByType<RE::Script>();
-  if (scriptFactory) {
-    const auto script = scriptFactory->Create();
-    if (script) {
-      script->SetCommand(command);
-      script->CompileAndRun(nullptr);
-      delete script;
+  // Queue on main thread to ensure safe execution
+  std::string cmdCopy = command;
+  SKSE::GetTaskInterface()->AddTask([cmdCopy]() {
+    const auto scriptFactory =
+        RE::IFormFactory::GetConcreteFormFactoryByType<RE::Script>();
+    if (!scriptFactory) {
+      logger::error("Failed to get Script factory");
+      return;
     }
+
+    const auto script = scriptFactory->Create();
+    if (!script) {
+      logger::error("Failed to create Script");
+      return;
+    }
+
+    script->SetCommand(cmdCopy);
+    script->CompileAndRun(nullptr);
+    delete script;
+  });
+}
+
+void CheatExecutor::SendModEvent(const std::string &eventName,
+                                 const std::string &strArg, float numArg) {
+  logger::info("Sending mod event: {} (strArg='{}', numArg={})", eventName,
+               strArg, numArg);
+
+  auto *eventSource = SKSE::GetModCallbackEventSource();
+  if (eventSource) {
+    SKSE::ModCallbackEvent event;
+    event.eventName = eventName;
+    event.strArg = strArg;
+    event.numArg = numArg;
+    event.sender = nullptr;
+    eventSource->SendEvent(&event);
+  } else {
+    logger::error("Failed to get ModCallbackEventSource");
   }
 }
 } // namespace CheatCodeMenu

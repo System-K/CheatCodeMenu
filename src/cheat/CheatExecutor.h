@@ -25,7 +25,8 @@ private:
   CheatExecutor &operator=(const CheatExecutor &) = delete;
   CheatExecutor &operator=(CheatExecutor &&) = delete;
 
-  // Individual action handlers
   void ExecuteConsoleCommand(const std::string &command);
+  void SendModEvent(const std::string &eventName, const std::string &strArg,
+                    float numArg);
 };
 } // namespace CheatCodeMenu

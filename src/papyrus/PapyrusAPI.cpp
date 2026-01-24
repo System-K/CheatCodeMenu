@@ -172,6 +172,16 @@ void ReloadCheatsFromDisk(RE::StaticFunctionTag *) {
   CheatStateStore::GetSingleton()->Initialize();
 }
 
+// Check if a cheat is trigger mode (vs toggle)
+bool IsTriggerMode(RE::StaticFunctionTag *, RE::BSFixedString id) {
+  auto *registry = CheatRegistry::GetSingleton();
+  const auto *def = registry->GetCheat(id.c_str());
+  if (!def) {
+    return false;
+  }
+  return def->mode == CheatMode::Trigger;
+}
+
 bool Register(RE::BSScript::IVirtualMachine *vm) {
   vm->RegisterFunction("GetMenuOptionLabels", SCRIPT_NAME, GetMenuOptionLabels);
   vm->RegisterFunction("GetMenuOptionKeys", SCRIPT_NAME, GetMenuOptionKeys);
@@ -179,10 +189,11 @@ bool Register(RE::BSScript::IVirtualMachine *vm) {
   vm->RegisterFunction("GetCheatState", SCRIPT_NAME, GetCheatState);
   vm->RegisterFunction("ActivateCheat", SCRIPT_NAME, ActivateCheat);
   vm->RegisterFunction("IsCheatEnabled", SCRIPT_NAME, IsCheatEnabled);
+  vm->RegisterFunction("IsTriggerMode", SCRIPT_NAME, IsTriggerMode);
   vm->RegisterFunction("ReloadCheatsFromDisk", SCRIPT_NAME,
                        ReloadCheatsFromDisk);
 
-  logger::info("Registered {} Papyrus native functions", 7);
+  logger::info("Registered {} Papyrus native functions", 8);
   return true;
 }
 } // namespace CheatCodeMenu::PapyrusAPI

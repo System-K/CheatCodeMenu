@@ -7,7 +7,6 @@
 #include <unordered_map>
 #include <vector>
 
-
 namespace CheatCodeMenu {
 class CheatRegistry {
 public:
@@ -21,6 +20,9 @@ public:
 
   // Look up which cheat IDs match a given code (normalized, case-insensitive)
   std::vector<std::string> LookupCode(const std::string &code) const;
+
+  // Get all cheat IDs in an exclusive group
+  std::vector<std::string> GetCheatsInGroup(const std::string &group) const;
 
   // Get all registered cheat IDs in registration order
   const std::vector<std::string> &GetAllIds() const { return m_orderedIds; }
@@ -58,5 +60,8 @@ private:
 
   // Code to cheat ID mapping (normalized codes)
   std::unordered_multimap<std::string, std::string> m_codeToIds;
+
+  // Exclusive group to cheat ID mapping
+  std::unordered_multimap<std::string, std::string> m_groupToIds;
 };
 } // namespace CheatCodeMenu

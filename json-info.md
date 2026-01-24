@@ -23,7 +23,8 @@ Files must have a `.json` extension. Multiple JSON files are supported.
 |-------|------|----------|-------------|
 | `id` | string | **Yes** | Unique identifier for the cheat (e.g., `"sample.godmode"`). Used internally. |
 | `displayName` | string | **Yes** | Name shown in menu when unlocked (e.g., `"God Mode"`). |
-| `code` | string | **Yes** | Code phrase to unlock the cheat (e.g., `"iddqd"`). Case-insensitive, whitespace-trimmed. |
+| `code` | string | Conditional | Single code phrase to unlock (e.g., `"iddqd"`). Either `code` or `codes` is required. |
+| `codes` | array | Conditional | Array of valid code phrases. Either `code` or `codes` is required. |
 | `defaultState` | string | **Yes** | Initial state: `"locked"`, `"hidden"`, or `"unlocked"`. |
 | `mode` | string | **Yes** | Activation mode: `"trigger"` or `"toggle"`. |
 
@@ -32,6 +33,7 @@ Files must have a `.json` extension. Multiple JSON files are supported.
 | Field | Type | Required | Default | Description |
 |-------|------|----------|---------|-------------|
 | `lockedName` | string | No | `"?????"` | Name shown in menu when locked (e.g., `"??? Divine Power"`). |
+| `exclusiveGroup` | string | No | - | Group name for mutual exclusivity. Only one cheat per group can be active (toggle mode only). |
 | `actions` | array | No | `[]` | Actions to execute (for `trigger` mode, or general actions). |
 | `enableActions` | array | No | `[]` | Actions when toggling ON (only for `toggle` mode). |
 | `disableActions` | array | No | `[]` | Actions when toggling OFF (only for `toggle` mode). |
@@ -102,9 +104,10 @@ See the [Integration Guide](#integration-guide) for how other SKSE plugins can l
       "id": "mymod.godmode",
       "displayName": "God Mode",
       "lockedName": "??? Divine Power",
-      "code": "iddqd",
+      "codes": ["iddqd", "godmode"],
       "defaultState": "locked",
       "mode": "toggle",
+      "exclusiveGroup": "immortality",
       "enableActions": [
         {
           "type": "console",
@@ -115,6 +118,27 @@ See the [Integration Guide](#integration-guide) for how other SKSE plugins can l
         {
           "type": "console",
           "params": { "command": "tgm" }
+        }
+      ]
+    },
+    {
+      "id": "mymod.immortal",
+      "displayName": "Immortal Mode",
+      "lockedName": "??? Undying",
+      "code": "tim",
+      "defaultState": "locked",
+      "mode": "toggle",
+      "exclusiveGroup": "immortality",
+      "enableActions": [
+        {
+          "type": "console",
+          "params": { "command": "tim" }
+        }
+      ],
+      "disableActions": [
+        {
+          "type": "console",
+          "params": { "command": "tim" }
         }
       ]
     },
@@ -150,7 +174,9 @@ See the [Integration Guide](#integration-guide) for how other SKSE plugins can l
 
 ## Notes
 
+- **Multiple codes per cheat** - use `codes` array to allow multiple code phrases to unlock the same cheat
 - **Multiple cheats can share the same code** - all matching cheats will unlock when the code is entered
+- **Exclusive groups** - toggle cheats in the same `exclusiveGroup` are mutually exclusive (enabling one disables others)
 - **Code comparison is case-insensitive** and ignores leading/trailing whitespace
 - **Invalid files are logged and skipped** - they don't prevent other files from loading
 - **Duplicate IDs are rejected** - only the first cheat with a given ID is loaded

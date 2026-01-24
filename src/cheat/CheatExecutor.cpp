@@ -68,6 +68,28 @@ bool CheatExecutor::ActivateCheat(const std::string &id) {
     // Toggle mode: flip state and execute corresponding actions
     bool currentlyEnabled = stateStore->IsToggleEnabled(id);
     bool newState = !currentlyEnabled;
+
+    // Handle exclusive groups - disable other cheats in group before enabling
+    if (newState && !def->exclusiveGroup.empty()) {
+      auto groupCheats = registry->GetCheatsInGroup(def->exclusiveGroup);
+      for (const auto &otherId : groupCheats) {
+        if (otherId == id)
+          continue; // Skip self
+
+        if (stateStore->IsToggleEnabled(otherId)) {
+          // Disable this other cheat
+          const auto *otherDef = registry->GetCheat(otherId);
+          if (otherDef) {
+            logger::info(
+                "Exclusive group '{}': disabling '{}' before enabling '{}'",
+                def->exclusiveGroup, otherId, id);
+            ExecuteActions(otherDef->disableActions);
+            stateStore->SetToggleEnabled(otherId, false);
+          }
+        }
+      }
+    }
+
     stateStore->SetToggleEnabled(id, newState);
 
     if (newState) {

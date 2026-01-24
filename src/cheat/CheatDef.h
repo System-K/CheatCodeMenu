@@ -4,7 +4,6 @@
 #include <string>
 #include <vector>
 
-
 namespace CheatCodeMenu {
 // Cheat visibility/activation state
 enum class CheatState : uint8_t {
@@ -30,7 +29,10 @@ struct CheatDef {
   std::string id;          // Unique identifier
   std::string displayName; // Shown when unlocked
   std::string lockedName;  // Shown when locked (default: "?????")
-  std::string code;        // Code phrase to unlock (normalized for comparison)
+  std::vector<std::string>
+      codes; // Code phrases to unlock (normalized for comparison)
+  std::string
+      exclusiveGroup; // Optional: only one cheat per group can be active
   CheatState defaultState;
   CheatMode mode;
 

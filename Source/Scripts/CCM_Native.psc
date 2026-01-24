@@ -23,5 +23,8 @@ Bool Function ActivateCheat(String id) Global Native
 ; For toggle mode cheats, returns current enabled state
 Bool Function IsCheatEnabled(String id) Global Native
 
+; Returns true if this cheat is trigger mode (vs toggle mode)
+Bool Function IsTriggerMode(String id) Global Native
+
 ; Debug: Reloads cheat definitions from disk
 Function ReloadCheatsFromDisk() Global Native

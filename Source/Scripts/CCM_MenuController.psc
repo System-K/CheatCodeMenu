@@ -58,7 +58,9 @@ Function ShowMenuLoop()
 				cheatState = CCM_Native.GetCheatState(selectedKey)
 				If cheatState == 2
 					If CCM_Native.ActivateCheat(selectedKey)
-						If CCM_Native.IsCheatEnabled(selectedKey)
+						If CCM_Native.IsTriggerMode(selectedKey)
+							Debug.Notification("Cheat executed!")
+						ElseIf CCM_Native.IsCheatEnabled(selectedKey)
 							Debug.Notification("Cheat enabled!")
 						Else
 							Debug.Notification("Cheat disabled.")

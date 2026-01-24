@@ -102,9 +102,17 @@ bool CheatRegistry::LoadFile(const std::filesystem::path &filepath) {
         continue;
       }
 
-      // Register the cheat
-      std::string normalizedCode = NormalizeCode(cheat.code);
-      m_codeToIds.emplace(normalizedCode, cheat.id);
+      // Register all codes for this cheat
+      for (const auto &code : cheat.codes) {
+        std::string normalizedCode = NormalizeCode(code);
+        m_codeToIds.emplace(normalizedCode, cheat.id);
+      }
+
+      // Register exclusive group if present
+      if (!cheat.exclusiveGroup.empty()) {
+        m_groupToIds.emplace(cheat.exclusiveGroup, cheat.id);
+      }
+
       m_orderedIds.push_back(cheat.id);
       m_cheats[cheat.id] = std::move(cheat);
       cheatsLoaded++;
@@ -132,11 +140,22 @@ bool CheatRegistry::ParseCheat(const nlohmann::json &j, CheatDef &outCheat,
   }
   outCheat.displayName = j["displayName"].get<std::string>();
 
-  if (!j.contains("code") || !j["code"].is_string()) {
-    logger::error("Cheat '{}' missing 'code' in {}", outCheat.id, filename);
+  // Parse codes - support both "code" (single) and "codes" (array)
+  if (j.contains("codes") && j["codes"].is_array()) {
+    for (const auto &codeJson : j["codes"]) {
+      if (codeJson.is_string()) {
+        outCheat.codes.push_back(codeJson.get<std::string>());
+      }
+    }
+  } else if (j.contains("code") && j["code"].is_string()) {
+    outCheat.codes.push_back(j["code"].get<std::string>());
+  }
+
+  if (outCheat.codes.empty()) {
+    logger::error("Cheat '{}' missing 'code' or 'codes' in {}", outCheat.id,
+                  filename);
     return false;
   }
-  outCheat.code = j["code"].get<std::string>();
 
   if (!j.contains("defaultState") || !j["defaultState"].is_string()) {
     logger::error("Cheat '{}' missing 'defaultState' in {}", outCheat.id,
@@ -156,6 +175,11 @@ bool CheatRegistry::ParseCheat(const nlohmann::json &j, CheatDef &outCheat,
     outCheat.lockedName = j["lockedName"].get<std::string>();
   } else {
     outCheat.lockedName = "?????";
+  }
+
+  // Exclusive group (optional)
+  if (j.contains("exclusiveGroup") && j["exclusiveGroup"].is_string()) {
+    outCheat.exclusiveGroup = j["exclusiveGroup"].get<std::string>();
   }
 
   // Actions
@@ -217,9 +241,25 @@ CheatRegistry::LookupCode(const std::string &code) const {
   return result;
 }
 
+std::vector<std::string>
+CheatRegistry::GetCheatsInGroup(const std::string &group) const {
+  std::vector<std::string> result;
+  if (group.empty()) {
+    return result;
+  }
+
+  auto range = m_groupToIds.equal_range(group);
+  for (auto it = range.first; it != range.second; ++it) {
+    result.push_back(it->second);
+  }
+
+  return result;
+}
+
 void CheatRegistry::Clear() {
   m_cheats.clear();
   m_orderedIds.clear();
   m_codeToIds.clear();
+  m_groupToIds.clear();
 }
 } // namespace CheatCodeMenu

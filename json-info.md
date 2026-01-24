@@ -260,11 +260,11 @@ Use `numArg` to differentiate between enable/disable:
 
 Check the value in your event handler to determine the action.
 
-### BigHeadMode Integration Example
+### Generic Toggle Integration Example
 
-To integrate BigHeadMode with CheatCodeMenu:
+To integrate your mod with CheatCodeMenu:
 
-#### 1. Add to BigHeadMode's main.cpp
+#### 1. Add to your main.cpp
 
 Add a mod event sink class:
 
@@ -281,17 +281,14 @@ public:
       RE::BSTEventSource<SKSE::ModCallbackEvent>*) override {
     if (!a_event) return RE::BSEventNotifyControl::kContinue;
 
-    if (a_event->eventName == "BigHeadMode_Toggle") {
+    if (a_event->eventName == "MyMod_ToggleEvent") {
       bool enable = (a_event->numArg > 0.5f);
       
+      // Perform state reconciliation
       if (enable && !Settings::bEnabled) {
-        Settings::Toggle();
-        HeadScaler::ScaleAllLoadedActors();
-        HeadScaler::MarkPendingPlayerScale();
+        Settings::Toggle(); // or MyMod::Enable()
       } else if (!enable && Settings::bEnabled) {
-        Settings::Toggle();
-        HeadScaler::ResetAllHeads();
-        HeadScaler::MarkPendingPlayerReset();
+        Settings::Toggle(); // or MyMod::Disable()
       }
     }
 
@@ -324,16 +321,16 @@ Create a file in `Data/SKSE/Plugins/CheatCodeMenu/cheats/`:
   "schemaVersion": 1,
   "cheats": [
     {
-      "id": "cavy8.bighead",
-      "displayName": "Big Head Mode",
-      "code": "bighead",
+      "id": "myauthor.mymod",
+      "displayName": "My Mod Feature",
+      "code": "mycode",
       "defaultState": "locked",
       "mode": "toggle",
       "enableActions": [
-        { "type": "modevent", "params": { "eventName": "BigHeadMode_Toggle", "numArg": 1 } }
+        { "type": "modevent", "params": { "eventName": "MyMod_ToggleEvent", "numArg": 1 } }
       ],
       "disableActions": [
-        { "type": "modevent", "params": { "eventName": "BigHeadMode_Toggle", "numArg": 0 } }
+        { "type": "modevent", "params": { "eventName": "MyMod_ToggleEvent", "numArg": 0 } }
       ]
     }
   ]

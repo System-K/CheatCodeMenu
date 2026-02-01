@@ -14,7 +14,7 @@ public:
 
   // Activate a cheat by ID
   // Returns true if activation succeeded
-  bool ActivateCheat(const std::string &id);
+  bool ActivateCheat(const std::string &id, bool force = false);
 
 private:
   CheatExecutor() = default;

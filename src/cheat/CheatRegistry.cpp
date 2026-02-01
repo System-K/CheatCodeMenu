@@ -145,7 +145,7 @@ void CheatRegistry::ApplyDefaultEnabledState() {
       }
 
       if (shouldActivate) {
-        executor->ActivateCheat(id);
+        executor->ActivateCheat(id, true);
         stateStore->SetHasAutoActivated(id, true);
         count++;
       } else {

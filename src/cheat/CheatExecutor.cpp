@@ -43,7 +43,7 @@ void CheatExecutor::ExecuteActions(const std::vector<CheatAction> &actions) {
   }
 }
 
-bool CheatExecutor::ActivateCheat(const std::string &id) {
+bool CheatExecutor::ActivateCheat(const std::string &id, bool force) {
   auto *registry = CheatRegistry::GetSingleton();
   auto *stateStore = CheatStateStore::GetSingleton();
 
@@ -54,7 +54,7 @@ bool CheatExecutor::ActivateCheat(const std::string &id) {
   }
 
   CheatState state = stateStore->GetState(id);
-  if (state != CheatState::Unlocked) {
+  if (!force && state != CheatState::Unlocked) {
     logger::info("ActivateCheat: Cheat '{}' is not unlocked", id);
     return false;
   }

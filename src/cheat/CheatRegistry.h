@@ -8,12 +8,26 @@
 #include <vector>
 
 namespace CheatCodeMenu {
-class CheatRegistry {
+class CheatRegistry : public RE::BSTEventSink<RE::MenuOpenCloseEvent> {
 public:
   static CheatRegistry *GetSingleton();
 
+  // Event handling
+  void RegisterForEvents();
+  void OnNewGame();
+  void OnPostLoadGame();
+
+  // BSTEventSink
+  RE::BSEventNotifyControl ProcessEvent(
+      const RE::MenuOpenCloseEvent *a_event,
+      RE::BSTEventSource<RE::MenuOpenCloseEvent> *a_eventSource) override;
+
   // Load all cheat definitions from disk
   void LoadFromDisk();
+
+  // Apply default enabled state for cheats (activates them if startEnabled is
+  // true)
+  void ApplyDefaultEnabledState();
 
   // Get a cheat definition by ID (nullptr if not found)
   const CheatDef *GetCheat(const std::string &id) const;
@@ -58,10 +72,19 @@ private:
   // Ordered list of IDs (for consistent menu ordering)
   std::vector<std::string> m_orderedIds;
 
+  // Explicit sort order from JSON
+  std::vector<std::string> m_explicitSortOrder;
+
+  // Re-sort m_orderedIds based on m_explicitSortOrder
+  void ApplySortOrder();
+
   // Code to cheat ID mapping (normalized codes)
   std::unordered_multimap<std::string, std::string> m_codeToIds;
 
   // Exclusive group to cheat ID mapping
   std::unordered_multimap<std::string, std::string> m_groupToIds;
+
+  // New Game state
+  bool m_pendingNewGameCheats = false;
 };
 } // namespace CheatCodeMenu

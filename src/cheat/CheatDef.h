@@ -34,6 +34,7 @@ struct CheatDef {
   std::string
       exclusiveGroup; // Optional: only one cheat per group can be active
   CheatState defaultState;
+  bool startEnabled = false;
   CheatMode mode;
 
   // Actions for trigger mode, or general actions for toggle
@@ -48,6 +49,7 @@ struct CheatDef {
 struct CheatRuntimeState {
   CheatState state = CheatState::Locked;
   bool toggleEnabled = false;
+  bool hasAutoActivated = false;
 };
 
 // Helper functions

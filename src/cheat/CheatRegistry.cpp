@@ -1,5 +1,9 @@
 #include "CheatRegistry.h"
+#include "CheatExecutor.h"
+#include "CheatStateStore.h"
+#include <algorithm>
 #include <fstream>
+#include <unordered_set>
 
 namespace CheatCodeMenu {
 CheatRegistry *CheatRegistry::GetSingleton() {
@@ -49,6 +53,110 @@ void CheatRegistry::LoadFromDisk() {
 
   logger::info("Loaded {} cheat definition files ({} failed), {} total cheats",
                filesLoaded, filesFailed, m_cheats.size());
+
+  ApplySortOrder();
+}
+
+void CheatRegistry::ApplySortOrder() {
+  if (m_explicitSortOrder.empty()) {
+    return;
+  }
+
+  std::vector<std::string> newOrder;
+  std::unordered_set<std::string> addedIds;
+
+  // First add explicitly ordered IDs if they exist
+  for (const auto &id : m_explicitSortOrder) {
+    if (m_cheats.contains(id)) {
+      newOrder.push_back(id);
+      addedIds.insert(id);
+    }
+  }
+
+  // Then add remaining IDs in their original load order
+  for (const auto &id : m_orderedIds) {
+    if (addedIds.find(id) == addedIds.end()) {
+      newOrder.push_back(id);
+    }
+  }
+
+  m_orderedIds = std::move(newOrder);
+  logger::info("Applied explicit sort order, {} cheats total",
+               m_orderedIds.size());
+}
+
+void CheatRegistry::RegisterForEvents() {
+  auto *ui = RE::UI::GetSingleton();
+  if (ui) {
+    ui->AddEventSink(this);
+    logger::info("Registered for MenuOpenCloseEvent");
+  }
+}
+
+void CheatRegistry::OnNewGame() {
+  m_pendingNewGameCheats = true;
+  logger::info("New Game detected, waiting for RaceMenu exit to apply cheats");
+}
+
+void CheatRegistry::OnPostLoadGame() {
+  // Logic for post-load (e.g., session resume)
+  // For startEnabled, we check if they were already activated.
+  // If not, and they are set to startEnabled, we activate them.
+  ApplyDefaultEnabledState();
+}
+
+RE::BSEventNotifyControl
+CheatRegistry::ProcessEvent(const RE::MenuOpenCloseEvent *a_event,
+                            RE::BSTEventSource<RE::MenuOpenCloseEvent> *) {
+  if (!a_event || m_pendingNewGameCheats == false) {
+    return RE::BSEventNotifyControl::kContinue;
+  }
+
+  // "RaceSex Menu" is the internal name for the character creation menu
+  if (a_event->menuName == "RaceSex Menu" && !a_event->opening) {
+    logger::info("RaceMenu closed on New Game - applying default cheats");
+    ApplyDefaultEnabledState();
+    m_pendingNewGameCheats = false;
+  }
+
+  return RE::BSEventNotifyControl::kContinue;
+}
+
+void CheatRegistry::ApplyDefaultEnabledState() {
+  auto *executor = CheatExecutor::GetSingleton();
+  auto *stateStore = CheatStateStore::GetSingleton();
+  int count = 0;
+
+  for (const auto &[id, def] : m_cheats) {
+    if (def.startEnabled) {
+      if (stateStore->HasAutoActivated(id)) {
+        continue; // Already ran for this save
+      }
+
+      // Check toggle state for logic - if it's toggle mode and already enabled
+      // (manually?), skip? But HasAutoActivated handles the "only run once"
+      // rule. So we just activate it now.
+
+      bool shouldActivate = true;
+      if (def.mode == CheatMode::Toggle) {
+        if (stateStore->IsToggleEnabled(id)) {
+          shouldActivate = false; // Already on
+        }
+      }
+
+      if (shouldActivate) {
+        executor->ActivateCheat(id);
+        stateStore->SetHasAutoActivated(id, true);
+        count++;
+      } else {
+        stateStore->SetHasAutoActivated(id, true);
+      }
+    }
+  }
+
+  if (count > 0) {
+    logger::info("Auto-activated {} cheats", count);
+  }
 }
 
 bool CheatRegistry::LoadFile(const std::filesystem::path &filepath) {
@@ -82,6 +190,17 @@ bool CheatRegistry::LoadFile(const std::filesystem::path &filepath) {
     logger::error("Unsupported schemaVersion {} in {} (expected 1)",
                   schemaVersion, filepath.filename().string());
     return false;
+  }
+
+  // Parse sortOrder (optional top-level)
+  if (root.contains("sortOrder") && root["sortOrder"].is_array()) {
+    for (const auto &idJson : root["sortOrder"]) {
+      if (idJson.is_string()) {
+        m_explicitSortOrder.push_back(idJson.get<std::string>());
+      }
+    }
+    logger::info("  Loaded {} explicitly ordered IDs from {}",
+                 root["sortOrder"].size(), filepath.filename().string());
   }
 
   // Parse cheats array
@@ -182,6 +301,11 @@ bool CheatRegistry::ParseCheat(const nlohmann::json &j, CheatDef &outCheat,
     outCheat.exclusiveGroup = j["exclusiveGroup"].get<std::string>();
   }
 
+  // Start enabled (optional)
+  if (j.contains("startEnabled") && j["startEnabled"].is_boolean()) {
+    outCheat.startEnabled = j["startEnabled"].get<bool>();
+  }
+
   // Actions
   if (j.contains("actions") && j["actions"].is_array()) {
     outCheat.actions = ParseActions(j["actions"]);
@@ -259,7 +383,9 @@ CheatRegistry::GetCheatsInGroup(const std::string &group) const {
 void CheatRegistry::Clear() {
   m_cheats.clear();
   m_orderedIds.clear();
+  m_explicitSortOrder.clear();
   m_codeToIds.clear();
   m_groupToIds.clear();
+  m_pendingNewGameCheats = false;
 }
 } // namespace CheatCodeMenu

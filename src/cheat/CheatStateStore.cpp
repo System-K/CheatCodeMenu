@@ -18,6 +18,7 @@ void CheatStateStore::Initialize() {
       CheatRuntimeState state;
       state.state = def->defaultState;
       state.toggleEnabled = false;
+      state.hasAutoActivated = false;
       m_states[id] = state;
     }
   }
@@ -62,6 +63,24 @@ void CheatStateStore::SetToggleEnabled(const std::string &id, bool enabled) {
   }
 }
 
+bool CheatStateStore::HasAutoActivated(const std::string &id) const {
+  std::lock_guard<std::mutex> lock(m_mutex);
+  auto it = m_states.find(id);
+  if (it != m_states.end()) {
+    return it->second.hasAutoActivated;
+  }
+  return false;
+}
+
+void CheatStateStore::SetHasAutoActivated(const std::string &id,
+                                          bool activated) {
+  std::lock_guard<std::mutex> lock(m_mutex);
+  auto it = m_states.find(id);
+  if (it != m_states.end()) {
+    it->second.hasAutoActivated = activated;
+  }
+}
+
 void CheatStateStore::Save(SKSE::SerializationInterface *intfc) {
   std::lock_guard<std::mutex> lock(m_mutex);
 
@@ -74,8 +93,10 @@ void CheatStateStore::Save(SKSE::SerializationInterface *intfc) {
     if (!def)
       continue;
 
-    // Only save if state differs from default or toggle is enabled
-    if (state.state != def->defaultState || state.toggleEnabled) {
+    // Only save if state differs from default or toggle is enabled or
+    // auto-activated
+    if (state.state != def->defaultState || state.toggleEnabled ||
+        state.hasAutoActivated) {
       toSave.emplace_back(id, state);
     }
   }
@@ -98,6 +119,10 @@ void CheatStateStore::Save(SKSE::SerializationInterface *intfc) {
     // Write toggle enabled
     uint8_t toggleVal = state.toggleEnabled ? 1 : 0;
     intfc->WriteRecordData(&toggleVal, sizeof(toggleVal));
+
+    // Write hasAutoActivated
+    uint8_t autoActiveVal = state.hasAutoActivated ? 1 : 0;
+    intfc->WriteRecordData(&autoActiveVal, sizeof(autoActiveVal));
   }
 
   logger::info("Saved {} cheat states to co-save", count);
@@ -136,6 +161,10 @@ void CheatStateStore::Load(SKSE::SerializationInterface *intfc) {
     if (!intfc->ReadRecordData(&toggleVal, sizeof(toggleVal)))
       break;
 
+    uint8_t autoActiveVal = 0;
+    if (!intfc->ReadRecordData(&autoActiveVal, sizeof(autoActiveVal)))
+      break;
+
     // Check if this cheat still exists in registry
     if (!registry->GetCheat(id)) {
       skipped++;
@@ -147,6 +176,7 @@ void CheatStateStore::Load(SKSE::SerializationInterface *intfc) {
     if (it != m_states.end()) {
       it->second.state = static_cast<CheatState>(stateVal);
       it->second.toggleEnabled = (toggleVal != 0);
+      it->second.hasAutoActivated = (autoActiveVal != 0);
       loaded++;
     }
   }

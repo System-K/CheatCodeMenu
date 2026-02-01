@@ -5,7 +5,6 @@
 #include <string>
 #include <unordered_map>
 
-
 namespace CheatCodeMenu {
 class CheatStateStore {
 public:
@@ -25,6 +24,10 @@ public:
 
   // Set toggle enabled state
   void SetToggleEnabled(const std::string &id, bool enabled);
+
+  // Check/Set if a cheat has been auto-activated for this save
+  bool HasAutoActivated(const std::string &id) const;
+  void SetHasAutoActivated(const std::string &id, bool activated);
 
   // SKSE Serialization
   void Save(SKSE::SerializationInterface *intfc);

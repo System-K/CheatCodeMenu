@@ -13,6 +13,7 @@ Files must have a `.json` extension. Multiple JSON files are supported.
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `schemaVersion` | integer | **Yes** | Must be `1`. Used for format validation. |
+| `sortOrder` | array | No | Array of strings (cheat IDs) defining specific menu order. |
 | `cheats` | array | **Yes** | Array of cheat definition objects. |
 
 ## Cheat Definition Object
@@ -33,6 +34,7 @@ Files must have a `.json` extension. Multiple JSON files are supported.
 | Field | Type | Required | Default | Description |
 |-------|------|----------|---------|-------------|
 | `lockedName` | string | No | `"?????"` | Name shown in menu when locked (e.g., `"??? Divine Power"`). |
+| `startEnabled` | boolean | No | `false` | If `true`, cheat is automatically activated when a new game starts. |
 | `exclusiveGroup` | string | No | - | Group name for mutual exclusivity. Only one cheat per group can be active (toggle mode only). |
 | `actions` | array | No | `[]` | Actions to execute (for `trigger` mode, or general actions). |
 | `enableActions` | array | No | `[]` | Actions when toggling ON (only for `toggle` mode). |
@@ -99,6 +101,7 @@ See the [Integration Guide](#integration-guide) for how other SKSE plugins can l
 ```json
 {
   "schemaVersion": 1,
+  "sortOrder": ["mymod.godmode", "mymod.immortal"],
   "cheats": [
     {
       "id": "mymod.godmode",
@@ -147,6 +150,7 @@ See the [Integration Guide](#integration-guide) for how other SKSE plugins can l
       "displayName": "Get Rich Quick (+10000 Gold)",
       "code": "showmethemoney",
       "defaultState": "unlocked",
+      "startEnabled": true,
       "mode": "trigger",
       "actions": [
         {

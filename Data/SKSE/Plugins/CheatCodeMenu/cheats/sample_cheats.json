@@ -1,5 +1,9 @@
 {
     "schemaVersion": 1,
+    "sortOrder": [
+        "sample.noclip",
+        "sample.godmode"
+    ],
     "cheats": [
         {
             "id": "sample.godmode",
@@ -7,6 +11,7 @@
             "lockedName": "??? Divine Power",
             "code": "iddqd",
             "defaultState": "locked",
+            "startEnabled": true,
             "mode": "toggle",
             "enableActions": [
                 {
@@ -70,6 +75,7 @@
             "displayName": "Get Rich Quick (+10000 Gold)",
             "code": "showmethemoney",
             "defaultState": "unlocked",
+            "startEnabled": true,
             "mode": "trigger",
             "actions": [
                 {

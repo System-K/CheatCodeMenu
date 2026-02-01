@@ -1,4 +1,5 @@
 #include "PapyrusAPI.h"
+#include "ConfigManager.h"
 #include "cheat/CheatExecutor.h"
 #include "cheat/CheatRegistry.h"
 #include "cheat/CheatStateStore.h"
@@ -182,6 +183,11 @@ bool IsTriggerMode(RE::StaticFunctionTag *, RE::BSFixedString id) {
   return def->mode == CheatMode::Trigger;
 }
 
+// Get localized/customized message from ConfigManager
+RE::BSFixedString GetMessage(RE::StaticFunctionTag *, RE::BSFixedString key) {
+  return ConfigManager::GetSingleton()->GetMessage(key.c_str());
+}
+
 bool Register(RE::BSScript::IVirtualMachine *vm) {
   vm->RegisterFunction("GetMenuOptionLabels", SCRIPT_NAME, GetMenuOptionLabels);
   vm->RegisterFunction("GetMenuOptionKeys", SCRIPT_NAME, GetMenuOptionKeys);
@@ -192,8 +198,9 @@ bool Register(RE::BSScript::IVirtualMachine *vm) {
   vm->RegisterFunction("IsTriggerMode", SCRIPT_NAME, IsTriggerMode);
   vm->RegisterFunction("ReloadCheatsFromDisk", SCRIPT_NAME,
                        ReloadCheatsFromDisk);
+  vm->RegisterFunction("GetMessage", SCRIPT_NAME, GetMessage);
 
-  logger::info("Registered {} Papyrus native functions", 8);
+  logger::info("Registered {} Papyrus native functions", 9);
   return true;
 }
 } // namespace CheatCodeMenu::PapyrusAPI

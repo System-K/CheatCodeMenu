@@ -27,4 +27,6 @@ Bool Function IsCheatEnabled(String id) Global Native
 Bool Function IsTriggerMode(String id) Global Native
 
 ; Debug: Reloads cheat definitions from disk
-Function ReloadCheatsFromDisk() Global Native
+
+; Get a customizable message from the INI configuration
+String Function GetMessage(String key) Global Native

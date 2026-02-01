@@ -1,3 +1,4 @@
+#include "ConfigManager.h"
 #include "HotkeyManager.h"
 #include "Serialization.h"
 #include "SystemMenuInjector.h"
@@ -20,6 +21,7 @@ static void SKSEMessageHandler(SKSE::MessagingInterface::Message *message) {
   case SKSE::MessagingInterface::kDataLoaded:
     // Load configuration
     HotkeyManager::GetSingleton()->LoadConfig();
+    ConfigManager::GetSingleton()->LoadConfig();
 
     // Initialize cheat system
     InitializeCheatSystem();

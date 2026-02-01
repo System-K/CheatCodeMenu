@@ -49,9 +49,9 @@ Function ShowMenuLoop()
 				cheatInput = UIExtensions.GetMenuResultString("UITextEntryMenu")
 				If cheatInput != ""
 					If CCM_Native.SubmitCode(cheatInput)
-						Debug.Notification("Code accepted!")
+						Debug.Notification(CCM_Native.GetMessage("CodeAccepted"))
 					Else
-						Debug.Notification("Invalid code.")
+						Debug.Notification(CCM_Native.GetMessage("InvalidCode"))
 					EndIf
 				EndIf
 			Else
@@ -59,17 +59,17 @@ Function ShowMenuLoop()
 				If cheatState == 2
 					If CCM_Native.ActivateCheat(selectedKey)
 						If CCM_Native.IsTriggerMode(selectedKey)
-							Debug.Notification("Cheat executed!")
+							Debug.Notification(CCM_Native.GetMessage("CheatExecuted"))
 						ElseIf CCM_Native.IsCheatEnabled(selectedKey)
-							Debug.Notification("Cheat enabled!")
+							Debug.Notification(CCM_Native.GetMessage("CheatEnabled"))
 						Else
-							Debug.Notification("Cheat disabled.")
+							Debug.Notification(CCM_Native.GetMessage("CheatDisabled"))
 						EndIf
 					Else
-						Debug.Notification("Activation failed.")
+						Debug.Notification(CCM_Native.GetMessage("ActivationFailed"))
 					EndIf
 				Else
-					Debug.Notification("This cheat is locked.")
+					Debug.Notification(CCM_Native.GetMessage("CheatLocked"))
 				EndIf
 			EndIf
 		EndIf

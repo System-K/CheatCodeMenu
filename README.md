@@ -86,10 +86,17 @@ Place JSON files in `Data/SKSE/Plugins/CheatCodeMenu/cheats/`:
 | `lockedName` | No | Label when locked (default: "?????") |
 | `code` | Yes | Code to unlock (case-insensitive) |
 | `defaultState` | Yes | `"locked"`, `"hidden"`, or `"unlocked"` |
+| `startEnabled` | No | Auto-activate on startup without changing locked/hidden/unlocked state |
 | `mode` | Yes | `"trigger"` or `"toggle"` |
 | `actions` | No | Actions for trigger mode |
 | `enableActions` | No | Actions when toggle enabled |
 | `disableActions` | No | Actions when toggle disabled |
+
+### Startup Activation
+
+`startEnabled` controls activation, not discovery. When it is `true`, the cheat is auto-activated once per save on startup/new game, but its `defaultState` is left alone.
+
+That means a cheat can start active while still being `locked` or `hidden`. For toggle cheats, this is intentional: the effect can be forced on until the player discovers the code, at which point it becomes unlockable and can be turned off from the menu. If you want a startup-enabled cheat to be immediately visible and switchable, use `defaultState: "unlocked"` together with `startEnabled: true`.
 
 ### Action Types
 

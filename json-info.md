@@ -34,7 +34,7 @@ Files must have a `.json` extension. Multiple JSON files are supported.
 | Field | Type | Required | Default | Description |
 |-------|------|----------|---------|-------------|
 | `lockedName` | string | No | `"?????"` | Name shown in menu when locked (e.g., `"??? Divine Power"`). |
-| `startEnabled` | boolean | No | `false` | If `true`, cheat is automatically activated when a new game starts. |
+| `startEnabled` | boolean | No | `false` | If `true`, cheat is automatically activated once per save on startup/new game. This does not change `defaultState`. |
 | `exclusiveGroup` | string | No | - | Group name for mutual exclusivity. Only one cheat per group can be active (toggle mode only). |
 | `actions` | array | No | `[]` | Actions to execute (for `trigger` mode, or general actions). |
 | `enableActions` | array | No | `[]` | Actions when toggling ON (only for `toggle` mode). |
@@ -45,6 +45,8 @@ Files must have a `.json` extension. Multiple JSON files are supported.
 - **`"locked"`**: Visible in menu with `lockedName`, cannot be activated until code is entered
 - **`"hidden"`**: Not visible in menu until code is entered
 - **`"unlocked"`**: Starts unlocked and visible with `displayName`
+
+`startEnabled` is independent from these state values. A cheat may begin active while still `locked` or `hidden`, which allows authors to force an effect on until the code is discovered.
 
 ## Mode Values
 
@@ -181,6 +183,7 @@ See the [Integration Guide](#integration-guide) for how other SKSE plugins can l
 - **Multiple codes per cheat** - use `codes` array to allow multiple code phrases to unlock the same cheat
 - **Multiple cheats can share the same code** - all matching cheats will unlock when the code is entered
 - **Exclusive groups** - toggle cheats in the same `exclusiveGroup` are mutually exclusive (enabling one disables others)
+- **`startEnabled` does not unlock cheats** - locked/hidden cheats can auto-activate and remain unavailable in the menu until discovered
 - **Code comparison is case-insensitive** and ignores leading/trailing whitespace
 - **Invalid files are logged and skipped** - they don't prevent other files from loading
 - **Duplicate IDs are rejected** - only the first cheat with a given ID is loaded

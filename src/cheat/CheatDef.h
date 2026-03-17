@@ -1,6 +1,7 @@
 #pragma once
 
 #include <nlohmann/json.hpp>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -53,18 +54,22 @@ struct CheatRuntimeState {
 };
 
 // Helper functions
-inline CheatState StateFromString(const std::string &str) {
+inline std::optional<CheatState> StateFromString(const std::string &str) {
   if (str == "hidden")
     return CheatState::Hidden;
   if (str == "unlocked")
     return CheatState::Unlocked;
-  return CheatState::Locked; // Default
+  if (str == "locked")
+    return CheatState::Locked;
+  return std::nullopt;
 }
 
-inline CheatMode ModeFromString(const std::string &str) {
+inline std::optional<CheatMode> ModeFromString(const std::string &str) {
   if (str == "toggle")
     return CheatMode::Toggle;
-  return CheatMode::Trigger; // Default
+  if (str == "trigger")
+    return CheatMode::Trigger;
+  return std::nullopt;
 }
 
 inline std::string StateToString(CheatState state) {

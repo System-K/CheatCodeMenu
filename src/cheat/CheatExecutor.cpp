@@ -8,12 +8,17 @@ CheatExecutor *CheatExecutor::GetSingleton() {
   return &singleton;
 }
 
-void CheatExecutor::ExecuteActions(const std::vector<CheatAction> &actions) {
+size_t CheatExecutor::ExecuteActions(const std::vector<CheatAction> &actions) {
+  size_t executedCount = 0;
+
   for (const auto &action : actions) {
     if (action.type == "console") {
       if (action.params.contains("command") &&
           action.params["command"].is_string()) {
-        ExecuteConsoleCommand(action.params["command"].get<std::string>());
+        if (ExecuteConsoleCommand(
+                action.params["command"].get<std::string>())) {
+          executedCount++;
+        }
       } else {
         logger::warn("Console action missing 'command' parameter");
       }
@@ -33,7 +38,9 @@ void CheatExecutor::ExecuteActions(const std::vector<CheatAction> &actions) {
           numArg = action.params["numArg"].get<float>();
         }
 
-        SendModEvent(eventName, strArg, numArg);
+        if (SendModEvent(eventName, strArg, numArg)) {
+          executedCount++;
+        }
       } else {
         logger::warn("ModEvent action missing 'eventName' parameter");
       }
@@ -41,11 +48,15 @@ void CheatExecutor::ExecuteActions(const std::vector<CheatAction> &actions) {
       logger::warn("Unknown action type: {}", action.type);
     }
   }
+
+  return executedCount;
 }
 
-void CheatExecutor::ExecuteToggleActions(const CheatDef &def, bool enabling) {
-  ExecuteActions(def.actions);
-  ExecuteActions(enabling ? def.enableActions : def.disableActions);
+size_t CheatExecutor::ExecuteToggleActions(const CheatDef &def, bool enabling) {
+  size_t executedCount = ExecuteActions(def.actions);
+  executedCount +=
+      ExecuteActions(enabling ? def.enableActions : def.disableActions);
+  return executedCount;
 }
 
 bool CheatExecutor::ActivateCheat(const std::string &id, bool force) {
@@ -68,7 +79,12 @@ bool CheatExecutor::ActivateCheat(const std::string &id, bool force) {
 
   if (def->mode == CheatMode::Trigger) {
     // Trigger mode: execute actions once
-    ExecuteActions(def->actions);
+    if (ExecuteActions(def->actions) == 0) {
+      logger::warn(
+          "ActivateCheat: Cheat '{}' has no valid trigger actions to execute",
+          id);
+      return false;
+    }
   } else {
     // Toggle mode: flip state and execute corresponding actions
     bool currentlyEnabled = stateStore->IsToggleEnabled(id);
@@ -88,20 +104,30 @@ bool CheatExecutor::ActivateCheat(const std::string &id, bool force) {
             logger::info(
                 "Exclusive group '{}': disabling '{}' before enabling '{}'",
                 def->exclusiveGroup, otherId, id);
-            ExecuteToggleActions(*otherDef, false);
+            if (ExecuteToggleActions(*otherDef, false) == 0) {
+              logger::warn(
+                  "ActivateCheat: Failed to disable '{}' while enabling '{}'",
+                  otherId, id);
+              return false;
+            }
             stateStore->SetToggleEnabled(otherId, false);
           }
         }
       }
     }
 
-    stateStore->SetToggleEnabled(id, newState);
+    if (ExecuteToggleActions(*def, newState) == 0) {
+      logger::warn(
+          "ActivateCheat: Cheat '{}' has no valid {} actions to execute", id,
+          newState ? "enable" : "disable");
+      return false;
+    }
 
     if (newState) {
-      ExecuteToggleActions(*def, true);
+      stateStore->SetToggleEnabled(id, true);
       logger::info("Cheat '{}' enabled", id);
     } else {
-      ExecuteToggleActions(*def, false);
+      stateStore->SetToggleEnabled(id, false);
       logger::info("Cheat '{}' disabled", id);
     }
   }
@@ -109,10 +135,10 @@ bool CheatExecutor::ActivateCheat(const std::string &id, bool force) {
   return true;
 }
 
-void CheatExecutor::ExecuteConsoleCommand(const std::string &command) {
+bool CheatExecutor::ExecuteConsoleCommand(const std::string &command) {
   if (command.empty()) {
     logger::warn("Empty console command, skipping");
-    return;
+    return false;
   }
 
   logger::info("Executing console command: {}", command);
@@ -137,9 +163,11 @@ void CheatExecutor::ExecuteConsoleCommand(const std::string &command) {
     script->CompileAndRun(nullptr);
     delete script;
   });
+
+  return true;
 }
 
-void CheatExecutor::SendModEvent(const std::string &eventName,
+bool CheatExecutor::SendModEvent(const std::string &eventName,
                                  const std::string &strArg, float numArg) {
   logger::info("Sending mod event: {} (strArg='{}', numArg={})", eventName,
                strArg, numArg);
@@ -152,8 +180,10 @@ void CheatExecutor::SendModEvent(const std::string &eventName,
     event.numArg = numArg;
     event.sender = nullptr;
     eventSource->SendEvent(&event);
+    return true;
   } else {
     logger::error("Failed to get ModCallbackEventSource");
+    return false;
   }
 }
 } // namespace CheatCodeMenu

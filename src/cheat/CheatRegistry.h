@@ -64,7 +64,9 @@ private:
                   const std::string &filename);
 
   // Parse action array
-  std::vector<CheatAction> ParseActions(const nlohmann::json &j);
+  bool ParseActions(const nlohmann::json &j, std::vector<CheatAction> &outActions,
+                    const std::string &filename, const std::string &cheatId,
+                    const char *fieldName);
 
   // Cheat definitions by ID
   std::unordered_map<std::string, CheatDef> m_cheats;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CheatDef.h"
+#include <cstddef>
 #include <string>
 #include <vector>
 
@@ -9,8 +10,8 @@ class CheatExecutor {
 public:
   static CheatExecutor *GetSingleton();
 
-  // Execute a list of actions
-  void ExecuteActions(const std::vector<CheatAction> &actions);
+  // Execute a list of actions and return how many were accepted for execution.
+  size_t ExecuteActions(const std::vector<CheatAction> &actions);
 
   // Activate a cheat by ID
   // Returns true if activation succeeded
@@ -25,9 +26,9 @@ private:
   CheatExecutor &operator=(const CheatExecutor &) = delete;
   CheatExecutor &operator=(CheatExecutor &&) = delete;
 
-  void ExecuteConsoleCommand(const std::string &command);
-  void ExecuteToggleActions(const CheatDef &def, bool enabling);
-  void SendModEvent(const std::string &eventName, const std::string &strArg,
+  bool ExecuteConsoleCommand(const std::string &command);
+  size_t ExecuteToggleActions(const CheatDef &def, bool enabling);
+  bool SendModEvent(const std::string &eventName, const std::string &strArg,
                     float numArg);
 };
 } // namespace CheatCodeMenu

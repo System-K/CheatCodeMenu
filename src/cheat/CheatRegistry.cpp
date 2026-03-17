@@ -145,9 +145,12 @@ void CheatRegistry::ApplyDefaultEnabledState() {
       }
 
       if (shouldActivate) {
-        executor->ActivateCheat(id, true);
-        stateStore->SetHasAutoActivated(id, true);
-        count++;
+        if (executor->ActivateCheat(id, true)) {
+          stateStore->SetHasAutoActivated(id, true);
+          count++;
+        } else {
+          logger::warn("Failed to auto-activate cheat '{}'", id);
+        }
       } else {
         stateStore->SetHasAutoActivated(id, true);
       }
@@ -281,13 +284,26 @@ bool CheatRegistry::ParseCheat(const nlohmann::json &j, CheatDef &outCheat,
                   filename);
     return false;
   }
-  outCheat.defaultState = StateFromString(j["defaultState"].get<std::string>());
+  const auto defaultState =
+      StateFromString(j["defaultState"].get<std::string>());
+  if (!defaultState.has_value()) {
+    logger::error("Cheat '{}' has invalid defaultState '{}' in {}",
+                  outCheat.id, j["defaultState"].get<std::string>(), filename);
+    return false;
+  }
+  outCheat.defaultState = *defaultState;
 
   if (!j.contains("mode") || !j["mode"].is_string()) {
     logger::error("Cheat '{}' missing 'mode' in {}", outCheat.id, filename);
     return false;
   }
-  outCheat.mode = ModeFromString(j["mode"].get<std::string>());
+  const auto mode = ModeFromString(j["mode"].get<std::string>());
+  if (!mode.has_value()) {
+    logger::error("Cheat '{}' has invalid mode '{}' in {}", outCheat.id,
+                  j["mode"].get<std::string>(), filename);
+    return false;
+  }
+  outCheat.mode = *mode;
 
   // Optional fields
   if (j.contains("lockedName") && j["lockedName"].is_string()) {
@@ -307,41 +323,117 @@ bool CheatRegistry::ParseCheat(const nlohmann::json &j, CheatDef &outCheat,
   }
 
   // Actions
-  if (j.contains("actions") && j["actions"].is_array()) {
-    outCheat.actions = ParseActions(j["actions"]);
+  if (j.contains("actions")) {
+    if (!j["actions"].is_array()) {
+      logger::error("Cheat '{}' has non-array 'actions' field in {}",
+                    outCheat.id, filename);
+      return false;
+    }
+    if (!ParseActions(j["actions"], outCheat.actions, filename, outCheat.id,
+                      "actions")) {
+      return false;
+    }
   }
 
-  if (j.contains("enableActions") && j["enableActions"].is_array()) {
-    outCheat.enableActions = ParseActions(j["enableActions"]);
+  if (j.contains("enableActions")) {
+    if (!j["enableActions"].is_array()) {
+      logger::error("Cheat '{}' has non-array 'enableActions' field in {}",
+                    outCheat.id, filename);
+      return false;
+    }
+    if (!ParseActions(j["enableActions"], outCheat.enableActions, filename,
+                      outCheat.id, "enableActions")) {
+      return false;
+    }
   }
 
-  if (j.contains("disableActions") && j["disableActions"].is_array()) {
-    outCheat.disableActions = ParseActions(j["disableActions"]);
+  if (j.contains("disableActions")) {
+    if (!j["disableActions"].is_array()) {
+      logger::error("Cheat '{}' has non-array 'disableActions' field in {}",
+                    outCheat.id, filename);
+      return false;
+    }
+    if (!ParseActions(j["disableActions"], outCheat.disableActions, filename,
+                      outCheat.id, "disableActions")) {
+      return false;
+    }
   }
 
   return true;
 }
 
-std::vector<CheatAction> CheatRegistry::ParseActions(const nlohmann::json &j) {
-  std::vector<CheatAction> actions;
+bool CheatRegistry::ParseActions(const nlohmann::json &j,
+                                 std::vector<CheatAction> &outActions,
+                                 const std::string &filename,
+                                 const std::string &cheatId,
+                                 const char *fieldName) {
+  outActions.clear();
 
-  for (const auto &actionJson : j) {
-    if (!actionJson.is_object())
-      continue;
-    if (!actionJson.contains("type") || !actionJson["type"].is_string())
-      continue;
+  for (size_t index = 0; index < j.size(); ++index) {
+    const auto &actionJson = j[index];
+    if (!actionJson.is_object()) {
+      logger::error("Cheat '{}' has non-object {}[{}] in {}", cheatId,
+                    fieldName, index, filename);
+      return false;
+    }
+    if (!actionJson.contains("type") || !actionJson["type"].is_string()) {
+      logger::error("Cheat '{}' has {}[{}] missing string 'type' in {}",
+                    cheatId, fieldName, index, filename);
+      return false;
+    }
 
     CheatAction action;
     action.type = actionJson["type"].get<std::string>();
 
-    if (actionJson.contains("params") && actionJson["params"].is_object()) {
-      action.params = actionJson["params"];
+    if (!actionJson.contains("params") || !actionJson["params"].is_object()) {
+      logger::error("Cheat '{}' has {}[{}] missing object 'params' in {}",
+                    cheatId, fieldName, index, filename);
+      return false;
+    }
+    action.params = actionJson["params"];
+
+    if (action.type == "console") {
+      if (!action.params.contains("command") ||
+          !action.params["command"].is_string() ||
+          action.params["command"].get<std::string>().empty()) {
+        logger::error(
+            "Cheat '{}' has {}[{}] with invalid console 'command' in {}",
+            cheatId, fieldName, index, filename);
+        return false;
+      }
+    } else if (action.type == "modevent") {
+      if (!action.params.contains("eventName") ||
+          !action.params["eventName"].is_string() ||
+          action.params["eventName"].get<std::string>().empty()) {
+        logger::error(
+            "Cheat '{}' has {}[{}] with invalid modevent 'eventName' in {}",
+            cheatId, fieldName, index, filename);
+        return false;
+      }
+      if (action.params.contains("strArg") &&
+          !action.params["strArg"].is_string()) {
+        logger::error(
+            "Cheat '{}' has {}[{}] with non-string modevent 'strArg' in {}",
+            cheatId, fieldName, index, filename);
+        return false;
+      }
+      if (action.params.contains("numArg") &&
+          !action.params["numArg"].is_number()) {
+        logger::error(
+            "Cheat '{}' has {}[{}] with non-numeric modevent 'numArg' in {}",
+            cheatId, fieldName, index, filename);
+        return false;
+      }
+    } else {
+      logger::error("Cheat '{}' has {}[{}] with unsupported type '{}' in {}",
+                    cheatId, fieldName, index, action.type, filename);
+      return false;
     }
 
-    actions.push_back(std::move(action));
+    outActions.push_back(std::move(action));
   }
 
-  return actions;
+  return true;
 }
 
 const CheatDef *CheatRegistry::GetCheat(const std::string &id) const {

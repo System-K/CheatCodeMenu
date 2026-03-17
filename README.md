@@ -88,9 +88,9 @@ Place JSON files in `Data/SKSE/Plugins/CheatCodeMenu/cheats/`:
 | `defaultState` | Yes | `"locked"`, `"hidden"`, or `"unlocked"` |
 | `startEnabled` | No | Auto-activate on startup without changing locked/hidden/unlocked state |
 | `mode` | Yes | `"trigger"` or `"toggle"` |
-| `actions` | No | Actions for trigger mode |
-| `enableActions` | No | Actions when toggle enabled |
-| `disableActions` | No | Actions when toggle disabled |
+| `actions` | No | Actions for trigger mode, or shared actions run on every toggle state change |
+| `enableActions` | No | Actions when toggle enabled (after shared `actions`) |
+| `disableActions` | No | Actions when toggle disabled (after shared `actions`) |
 
 ### Startup Activation
 

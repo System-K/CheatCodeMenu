@@ -26,6 +26,7 @@ private:
   CheatExecutor &operator=(CheatExecutor &&) = delete;
 
   void ExecuteConsoleCommand(const std::string &command);
+  void ExecuteToggleActions(const CheatDef &def, bool enabling);
   void SendModEvent(const std::string &eventName, const std::string &strArg,
                     float numArg);
 };

@@ -43,6 +43,11 @@ void CheatExecutor::ExecuteActions(const std::vector<CheatAction> &actions) {
   }
 }
 
+void CheatExecutor::ExecuteToggleActions(const CheatDef &def, bool enabling) {
+  ExecuteActions(def.actions);
+  ExecuteActions(enabling ? def.enableActions : def.disableActions);
+}
+
 bool CheatExecutor::ActivateCheat(const std::string &id, bool force) {
   auto *registry = CheatRegistry::GetSingleton();
   auto *stateStore = CheatStateStore::GetSingleton();
@@ -83,7 +88,7 @@ bool CheatExecutor::ActivateCheat(const std::string &id, bool force) {
             logger::info(
                 "Exclusive group '{}': disabling '{}' before enabling '{}'",
                 def->exclusiveGroup, otherId, id);
-            ExecuteActions(otherDef->disableActions);
+            ExecuteToggleActions(*otherDef, false);
             stateStore->SetToggleEnabled(otherId, false);
           }
         }
@@ -93,10 +98,10 @@ bool CheatExecutor::ActivateCheat(const std::string &id, bool force) {
     stateStore->SetToggleEnabled(id, newState);
 
     if (newState) {
-      ExecuteActions(def->enableActions);
+      ExecuteToggleActions(*def, true);
       logger::info("Cheat '{}' enabled", id);
     } else {
-      ExecuteActions(def->disableActions);
+      ExecuteToggleActions(*def, false);
       logger::info("Cheat '{}' disabled", id);
     }
   }

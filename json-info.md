@@ -36,9 +36,9 @@ Files must have a `.json` extension. Multiple JSON files are supported.
 | `lockedName` | string | No | `"?????"` | Name shown in menu when locked (e.g., `"??? Divine Power"`). |
 | `startEnabled` | boolean | No | `false` | If `true`, cheat is automatically activated once per save on startup/new game. This does not change `defaultState`. |
 | `exclusiveGroup` | string | No | - | Group name for mutual exclusivity. Only one cheat per group can be active (toggle mode only). |
-| `actions` | array | No | `[]` | Actions to execute (for `trigger` mode, or general actions). |
-| `enableActions` | array | No | `[]` | Actions when toggling ON (only for `toggle` mode). |
-| `disableActions` | array | No | `[]` | Actions when toggling OFF (only for `toggle` mode). |
+| `actions` | array | No | `[]` | Actions to execute for `trigger` mode, or shared actions run on every toggle state change. |
+| `enableActions` | array | No | `[]` | Actions when toggling ON (only for `toggle` mode, after shared `actions`). |
+| `disableActions` | array | No | `[]` | Actions when toggling OFF (only for `toggle` mode, after shared `actions`). |
 
 ## State Values
 
@@ -51,7 +51,7 @@ Files must have a `.json` extension. Multiple JSON files are supported.
 ## Mode Values
 
 - **`"trigger"`**: Execute `actions` each time activated
-- **`"toggle"`**: Flip between enabled/disabled states, running `enableActions`/`disableActions`
+- **`"toggle"`**: Flip between enabled/disabled states, running shared `actions` plus `enableActions`/`disableActions`
 
 ## Action Object
 

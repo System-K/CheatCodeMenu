@@ -127,33 +127,32 @@ void CheatRegistry::ApplyDefaultEnabledState() {
   auto *stateStore = CheatStateStore::GetSingleton();
   int count = 0;
 
-  for (const auto &[id, def] : m_cheats) {
-    if (def.startEnabled) {
-      if (stateStore->HasAutoActivated(id)) {
-        continue; // Already ran for this save
-      }
+  for (const auto &id : m_orderedIds) {
+    const auto *def = GetCheat(id);
+    if (!def || !def->startEnabled) {
+      continue;
+    }
 
-      // Check toggle state for logic - if it's toggle mode and already enabled
-      // (manually?), skip? But HasAutoActivated handles the "only run once"
-      // rule. So we just activate it now.
+    if (stateStore->HasAutoActivated(id)) {
+      continue; // Already ran for this save
+    }
 
-      bool shouldActivate = true;
-      if (def.mode == CheatMode::Toggle) {
-        if (stateStore->IsToggleEnabled(id)) {
-          shouldActivate = false; // Already on
-        }
-      }
+    // Apply startup activation in menu order so exclusive groups and side
+    // effects are deterministic.
+    bool shouldActivate = true;
+    if (def->mode == CheatMode::Toggle && stateStore->IsToggleEnabled(id)) {
+      shouldActivate = false; // Already on
+    }
 
-      if (shouldActivate) {
-        if (executor->ActivateCheat(id, true)) {
-          stateStore->SetHasAutoActivated(id, true);
-          count++;
-        } else {
-          logger::warn("Failed to auto-activate cheat '{}'", id);
-        }
-      } else {
+    if (shouldActivate) {
+      if (executor->ActivateCheat(id, true)) {
         stateStore->SetHasAutoActivated(id, true);
+        count++;
+      } else {
+        logger::warn("Failed to auto-activate cheat '{}'", id);
       }
+    } else {
+      stateStore->SetHasAutoActivated(id, true);
     }
   }
 

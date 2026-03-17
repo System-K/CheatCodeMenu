@@ -37,8 +37,8 @@ Edit `Data/SKSE/Plugins/CheatCodeMenu.ini`:
 
 ```ini
 [Hotkey]
-; DirectX scan code for menu hotkey
-; Insert = 0xD2 (67 decimal)
+; DirectX scan code for menu hotkey (-1 disables the hotkey)
+; F9 = 0x43 (67 decimal)
 ; See: https://learn.microsoft.com/en-us/previous-versions/visualstudio/visual-studio-6.0/aa299374(v=vs.60)
 ScanCode = -1
 
@@ -50,6 +50,8 @@ ButtonText = CHEAT CODES
 ; Enable verbose logging (0 = off, 1 = on)
 VerboseLogging = 0
 ```
+
+`ScanCode = -1` disables the hotkey entirely. Set a decimal or hex scan code such as `67` or `0x43` to bind a key.
 
 ## Creating Cheats
 

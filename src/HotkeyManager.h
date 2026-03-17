@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <optional>
 
 namespace CheatCodeMenu {
 class HotkeyManager {
@@ -14,7 +15,8 @@ public:
   void RegisterSink();
 
   // Get configured scancode
-  uint32_t GetScanCode() const { return m_scanCode; }
+  std::optional<uint32_t> GetScanCode() const { return m_scanCode; }
+  bool IsEnabled() const { return m_scanCode.has_value(); }
 
 private:
   HotkeyManager() = default;
@@ -25,7 +27,7 @@ private:
   HotkeyManager &operator=(const HotkeyManager &) = delete;
   HotkeyManager &operator=(HotkeyManager &&) = delete;
 
-  uint32_t m_scanCode = 0x43; // Default: F9
+  std::optional<uint32_t> m_scanCode = 0x43; // Default: F9
 };
 
 // Input event sink for hotkey detection

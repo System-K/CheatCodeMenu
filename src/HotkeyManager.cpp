@@ -1,5 +1,6 @@
 #include "HotkeyManager.h"
 #include <CLIBUtil/detail/SimpleIni.h>
+#include <string>
 
 namespace CheatCodeMenu {
 HotkeyManager *HotkeyManager::GetSingleton() {
@@ -15,29 +16,40 @@ void HotkeyManager::LoadConfig() {
 
   if (ini.LoadFile(path.string().c_str()) == SI_OK) {
     const char *scanCodeStr = ini.GetValue("Hotkey", "ScanCode", "0x43");
+    const std::string scanCodeValue = scanCodeStr ? scanCodeStr : "";
 
-    // Parse hex or decimal
     try {
-      if (scanCodeStr[0] == '0' &&
-          (scanCodeStr[1] == 'x' || scanCodeStr[1] == 'X')) {
+      if (scanCodeValue == "-1") {
+        m_scanCode.reset();
+        logger::info("Hotkey disabled via INI (ScanCode = -1)");
+      } else if (!scanCodeValue.empty() && scanCodeValue[0] == '-') {
+        throw std::out_of_range("negative scancodes are invalid");
+      } else if (scanCodeValue.rfind("0x", 0) == 0 ||
+                 scanCodeValue.rfind("0X", 0) == 0) {
         m_scanCode =
-            static_cast<uint32_t>(std::stoul(scanCodeStr, nullptr, 16));
+            static_cast<uint32_t>(std::stoul(scanCodeValue, nullptr, 16));
+        logger::info("Loaded hotkey scancode: 0x{:X}", *m_scanCode);
       } else {
         m_scanCode =
-            static_cast<uint32_t>(std::stoul(scanCodeStr, nullptr, 10));
+            static_cast<uint32_t>(std::stoul(scanCodeValue, nullptr, 10));
+        logger::info("Loaded hotkey scancode: 0x{:X}", *m_scanCode);
       }
     } catch (...) {
       logger::warn("Failed to parse ScanCode from INI, using default (F9)");
       m_scanCode = 0x43;
+      logger::info("Loaded hotkey scancode: 0x{:X}", *m_scanCode);
     }
-
-    logger::info("Loaded hotkey scancode: 0x{:X}", m_scanCode);
   } else {
     logger::info("No INI file found, using default hotkey (F9 = 0x43)");
   }
 }
 
 void HotkeyManager::RegisterSink() {
+  if (!IsEnabled()) {
+    logger::info("Hotkey is disabled; skipping input event sink registration");
+    return;
+  }
+
   HotkeyEventSink::GetSingleton(); // Ensure singleton exists
 
   auto *inputDeviceManager = RE::BSInputDeviceManager::GetSingleton();
@@ -62,7 +74,10 @@ HotkeyEventSink::ProcessEvent(RE::InputEvent *const *a_event,
   }
 
   auto *hotkeyManager = HotkeyManager::GetSingleton();
-  uint32_t targetScanCode = hotkeyManager->GetScanCode();
+  auto targetScanCode = hotkeyManager->GetScanCode();
+  if (!targetScanCode) {
+    return RE::BSEventNotifyControl::kContinue;
+  }
 
   for (auto *event = *a_event; event; event = event->next) {
     if (event->eventType != RE::INPUT_EVENT_TYPE::kButton) {
@@ -77,7 +92,7 @@ HotkeyEventSink::ProcessEvent(RE::InputEvent *const *a_event,
     }
 
     // Check if this is our hotkey
-    if (buttonEvent->GetIDCode() == targetScanCode) {
+    if (buttonEvent->GetIDCode() == *targetScanCode) {
       // Check we're not in a menu that would conflict
       auto *ui = RE::UI::GetSingleton();
       if (ui && !ui->GameIsPaused()) {

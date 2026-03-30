@@ -19,9 +19,11 @@ void ConfigManager::LoadMessages(const std::string &path) {
 
   if (ini.LoadFile(path.c_str()) != SI_OK) {
     logger::info("No INI file found at {}, using default messages", path);
-    // Populate defaults just in case, though GetMessage handles missing keys
     return;
   }
+
+  _unlockAllCodes = ini.GetBoolValue("Settings", "UnlockAllCodes", false);
+  logger::info("UnlockAllCodes setting: {}", _unlockAllCodes);
 
   // Define default messages to look for
   std::vector<std::pair<std::string, std::string>> defaults = {
@@ -64,5 +66,9 @@ std::string ConfigManager::GetMessage(const std::string &key) const {
     return "This cheat is locked.";
 
   return key; // Return key as fallback if absolutely nothing found
+}
+
+bool ConfigManager::GetUnlockAllCodes() const {
+  return _unlockAllCodes;
 }
 } // namespace CheatCodeMenu

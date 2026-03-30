@@ -10,6 +10,7 @@ public:
 
   void LoadConfig();
   std::string GetMessage(const std::string &key) const;
+  bool GetUnlockAllCodes() const;
 
 private:
   ConfigManager() = default;
@@ -17,6 +18,7 @@ private:
   ConfigManager &operator=(const ConfigManager &) = delete;
 
   std::unordered_map<std::string, std::string> _messages;
+  bool _unlockAllCodes = false;
 
   void LoadMessages(const std::string &path);
 };

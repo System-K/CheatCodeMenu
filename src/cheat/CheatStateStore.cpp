@@ -1,5 +1,6 @@
 #include "CheatStateStore.h"
 #include "CheatRegistry.h"
+#include "ConfigManager.h"
 
 namespace CheatCodeMenu {
 CheatStateStore *CheatStateStore::GetSingleton() {
@@ -30,6 +31,9 @@ CheatState CheatStateStore::GetState(const std::string &id) const {
   std::lock_guard<std::mutex> lock(m_mutex);
   auto it = m_states.find(id);
   if (it != m_states.end()) {
+    if (ConfigManager::GetSingleton()->GetUnlockAllCodes()) {
+      return CheatState::Unlocked;
+    }
     return it->second.state;
   }
   return CheatState::Locked; // Default for unknown

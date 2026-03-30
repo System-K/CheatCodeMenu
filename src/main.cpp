@@ -32,7 +32,7 @@ static void SKSEMessageHandler(SKSE::MessagingInterface::Message *message) {
     // Register System menu injector for pause menu button
     SystemMenuInjector::GetSingleton()->Register();
 
-    // Initialize things that need data (none so far, but good practice)
+    // Initialize things that need data
     CheatRegistry::GetSingleton()->RegisterForEvents();
 
     logger::info("CheatCodeMenu initialized successfully");

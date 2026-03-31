@@ -1,18 +1,14 @@
-FormKey: 005900:CheatCodeMenu.esp
+FormKey: 000001:CheatCodeMenu.esp
 EditorID: CCM_MenuQuest
 VirtualMachineAdapter:
   Scripts:
   - Name: CCM_MenuController
-    Properties:
-    - MutagenObjectType: ScriptObjectProperty
-      Name: UILib
-      Object: 00FB05:CheatCodeMenu.esp
   - Name: CCMUI_Script
   FileName: ''
   Aliases:
   - Property:
       Name: ''
-      Object: 005900:CheatCodeMenu.esp
+      Object: 000001:CheatCodeMenu.esp
       Alias: 1
     Scripts:
     - Name: CCMUI_PlayerScript

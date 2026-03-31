@@ -4,7 +4,10 @@ SpriggitSource:
 ModKey: CheatCodeMenu.esp
 GameRelease: SkyrimSE
 ModHeader:
+  Flags:
+  - Small
   Author: DEFAULT
+  Description: ' ESPFE+'
   MasterReferences:
   - Master: Skyrim.esm
     FileSize: 0

@@ -24,8 +24,8 @@ Files must have a `.json` extension. Multiple JSON files are supported.
 |-------|------|----------|-------------|
 | `id` | string | **Yes** | Unique identifier for the cheat (e.g., `"sample.godmode"`). Used internally. |
 | `displayName` | string | **Yes** | Name shown in menu when unlocked (e.g., `"God Mode"`). |
-| `code` | string | Conditional | Single code phrase to unlock (e.g., `"iddqd"`). Either `code` or `codes` is required. |
-| `codes` | array | Conditional | Array of valid code phrases. Either `code` or `codes` is required. |
+| `code` | string | No | Single code phrase to unlock (e.g., `"iddqd"`). Either `code` or `codes` is required. |
+| `codes` | array | No | Array of valid code phrases. Either `code` or `codes` is required. |
 | `defaultState` | string | **Yes** | Initial state: `"locked"`, `"hidden"`, or `"unlocked"`. |
 | `mode` | string | **Yes** | Activation mode: `"trigger"` or `"toggle"`. |
 

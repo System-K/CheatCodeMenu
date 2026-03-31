@@ -1,0 +1,32 @@
+FormKey: 005900:CheatCodeMenu.esp
+EditorID: CCM_MenuQuest
+VirtualMachineAdapter:
+  Scripts:
+  - Name: CCM_MenuController
+    Properties:
+    - MutagenObjectType: ScriptObjectProperty
+      Name: UILib
+      Object: 00FB05:CheatCodeMenu.esp
+  - Name: CCMUI_Script
+  FileName: ''
+  Aliases:
+  - Property:
+      Name: ''
+      Object: 005900:CheatCodeMenu.esp
+      Alias: 1
+    Scripts:
+    - Name: CCMUI_PlayerScript
+Name:
+  TargetLanguage: English
+  Value: Cheat Code Menu Controller
+Flags:
+- StartGameEnabled
+- 0x10
+- RunOnce
+NextAliasID: 2
+Aliases:
+- ID: 1
+  Name: PlayerREF
+  Flags: []
+  ForcedReference: 000014:Skyrim.esm
+  VoiceTypes: Null

@@ -31,7 +31,7 @@ struct CheatDef {
   std::string displayName; // Shown when unlocked
   std::string lockedName;  // Shown when locked (default: "?????")
   std::vector<std::string>
-      codes; // Code phrases to unlock (normalized for comparison)
+      codes; // Unlock phrases; falls back to the cheat ID when omitted in JSON
   std::string
       exclusiveGroup; // Optional: only one cheat per group can be active
   CheatState defaultState;

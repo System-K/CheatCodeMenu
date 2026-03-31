@@ -273,9 +273,11 @@ bool CheatRegistry::ParseCheat(const nlohmann::json &j, CheatDef &outCheat,
   }
 
   if (outCheat.codes.empty()) {
-    logger::error("Cheat '{}' missing 'code' or 'codes' in {}", outCheat.id,
-                  filename);
-    return false;
+    outCheat.codes.push_back(outCheat.id);
+    logger::info(
+        "Cheat '{}' in {} omitted 'code'/'codes'; using the cheat ID as the "
+        "unlock code",
+        outCheat.id, filename);
   }
 
   if (!j.contains("defaultState") || !j["defaultState"].is_string()) {

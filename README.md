@@ -42,7 +42,7 @@ Feel free to play around with some of the other options - you can set custom hid
 
 Additionally, you may wish to play around with alternative methods of sharing the cheat codes. I've simply included them in the mod page for this mod, but you could, for example, add notes around the game that hint at the codes. If there's demand, I could also add a papyrus function that unlocks a code.
 
-## # **Adding Cheats to an Existing Mod:**
+### **Adding Cheats to an Existing Mod:**
 
 As there's no need for your mod to require this one, you can add cheats to your mod that are only available if this mod is installed. Simply set up the infrastructure for it, like above, and then ship the mod with the json included. If CHEAT CODES is installed, your cheats will be added to the menu. If not, they simply won't appear to the user (or the user can use console commands to trigger them). This is a fun way to add easter eggs to your mod without needing to add any additional requirements.
 

@@ -66,6 +66,10 @@ For example, let's pretend that I have a modlist called "Super Skyrim". I can ad
 ; Text displayed on the System menu button
 ButtonText = SUPER SKYRIM
 
+[Settings]
+; Automatically unlock all cheats in the menu, bypassing the need to input codes.
+UnlockAllCodes = true
+
 [Messages]
 CodeAccepted = Code accepted!
 InvalidCode = Invalid code.

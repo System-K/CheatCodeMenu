@@ -8,13 +8,10 @@ class HotkeyManager {
 public:
   static HotkeyManager *GetSingleton();
 
-  // Load hotkey configuration from INI
   void LoadConfig();
 
-  // Register input event sink
   void RegisterSink();
 
-  // Get configured scancode
   std::optional<uint32_t> GetScanCode() const { return m_scanCode; }
   bool IsEnabled() const { return m_scanCode.has_value(); }
 
@@ -27,10 +24,9 @@ private:
   HotkeyManager &operator=(const HotkeyManager &) = delete;
   HotkeyManager &operator=(HotkeyManager &&) = delete;
 
-  std::optional<uint32_t> m_scanCode = 0x43; // Default: F9
+  std::optional<uint32_t> m_scanCode = 0x43;
 };
 
-// Input event sink for hotkey detection
 class HotkeyEventSink : public RE::BSTEventSink<RE::InputEvent *> {
 public:
   static HotkeyEventSink *GetSingleton();

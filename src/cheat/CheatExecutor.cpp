@@ -78,7 +78,6 @@ bool CheatExecutor::ActivateCheat(const std::string &id, bool force) {
   logger::info("Activating cheat '{}'", id);
 
   if (def->mode == CheatMode::Trigger) {
-    // Trigger mode: execute actions once
     if (ExecuteActions(def->actions) == 0) {
       logger::warn(
           "ActivateCheat: Cheat '{}' has no valid trigger actions to execute",
@@ -86,19 +85,16 @@ bool CheatExecutor::ActivateCheat(const std::string &id, bool force) {
       return false;
     }
   } else {
-    // Toggle mode: flip state and execute corresponding actions
     bool currentlyEnabled = stateStore->IsToggleEnabled(id);
     bool newState = !currentlyEnabled;
 
-    // Handle exclusive groups - disable other cheats in group before enabling
     if (newState && !def->exclusiveGroup.empty()) {
       auto groupCheats = registry->GetCheatsInGroup(def->exclusiveGroup);
       for (const auto &otherId : groupCheats) {
         if (otherId == id)
-          continue; // Skip self
+          continue;
 
         if (stateStore->IsToggleEnabled(otherId)) {
-          // Disable this other cheat
           const auto *otherDef = registry->GetCheat(otherId);
           if (otherDef) {
             logger::info(

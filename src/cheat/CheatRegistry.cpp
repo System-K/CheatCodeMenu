@@ -14,7 +14,6 @@ CheatRegistry *CheatRegistry::GetSingleton() {
 void CheatRegistry::LoadFromDisk() {
   Clear();
 
-  // Build path to cheats directory
   auto dataPath =
       std::filesystem::path("Data/SKSE/Plugins/CheatCodeMenu/cheats");
 
@@ -65,7 +64,6 @@ void CheatRegistry::ApplySortOrder() {
   std::vector<std::string> newOrder;
   std::unordered_set<std::string> addedIds;
 
-  // First add explicitly ordered IDs if they exist
   for (const auto &id : m_explicitSortOrder) {
     if (m_cheats.contains(id)) {
       newOrder.push_back(id);
@@ -73,7 +71,6 @@ void CheatRegistry::ApplySortOrder() {
     }
   }
 
-  // Then add remaining IDs in their original load order
   for (const auto &id : m_orderedIds) {
     if (addedIds.find(id) == addedIds.end()) {
       newOrder.push_back(id);
@@ -99,9 +96,6 @@ void CheatRegistry::OnNewGame() {
 }
 
 void CheatRegistry::OnPostLoadGame() {
-  // Logic for post-load (e.g., session resume)
-  // For startEnabled, we check if they were already activated.
-  // If not, and they are set to startEnabled, we activate them.
   ApplyDefaultEnabledState();
 }
 
@@ -112,7 +106,6 @@ CheatRegistry::ProcessEvent(const RE::MenuOpenCloseEvent *a_event,
     return RE::BSEventNotifyControl::kContinue;
   }
 
-  // "RaceSex Menu" is the internal name for the character creation menu
   if (a_event->menuName == "RaceSex Menu" && !a_event->opening) {
     logger::info("RaceMenu closed on New Game - applying default cheats");
     ApplyDefaultEnabledState();
@@ -134,14 +127,12 @@ void CheatRegistry::ApplyDefaultEnabledState() {
     }
 
     if (stateStore->HasAutoActivated(id)) {
-      continue; // Already ran for this save
+      continue;
     }
 
-    // Apply startup activation in menu order so exclusive groups and side
-    // effects are deterministic.
     bool shouldActivate = true;
     if (def->mode == CheatMode::Toggle && stateStore->IsToggleEnabled(id)) {
-      shouldActivate = false; // Already on
+      shouldActivate = false;
     }
 
     if (shouldActivate) {
@@ -179,7 +170,6 @@ bool CheatRegistry::LoadFile(const std::filesystem::path &filepath) {
     return false;
   }
 
-  // Validate schema version
   if (!root.contains("schemaVersion") ||
       !root["schemaVersion"].is_number_integer()) {
     logger::error("Missing or invalid schemaVersion in {}",
@@ -194,7 +184,6 @@ bool CheatRegistry::LoadFile(const std::filesystem::path &filepath) {
     return false;
   }
 
-  // Parse sortOrder (optional top-level)
   if (root.contains("sortOrder") && root["sortOrder"].is_array()) {
     for (const auto &idJson : root["sortOrder"]) {
       if (idJson.is_string()) {
@@ -205,7 +194,6 @@ bool CheatRegistry::LoadFile(const std::filesystem::path &filepath) {
                  root["sortOrder"].size(), filepath.filename().string());
   }
 
-  // Parse cheats array
   if (!root.contains("cheats") || !root["cheats"].is_array()) {
     logger::error("Missing or invalid 'cheats' array in {}",
                   filepath.filename().string());
@@ -216,20 +204,17 @@ bool CheatRegistry::LoadFile(const std::filesystem::path &filepath) {
   for (const auto &cheatJson : root["cheats"]) {
     CheatDef cheat;
     if (ParseCheat(cheatJson, cheat, filepath.filename().string())) {
-      // Check for duplicate ID
       if (m_cheats.contains(cheat.id)) {
         logger::warn("Duplicate cheat ID '{}' in {}, skipping", cheat.id,
                      filepath.filename().string());
         continue;
       }
 
-      // Register all codes for this cheat
       for (const auto &code : cheat.codes) {
         std::string normalizedCode = NormalizeCode(code);
         m_codeToIds.emplace(normalizedCode, cheat.id);
       }
 
-      // Register exclusive group if present
       if (!cheat.exclusiveGroup.empty()) {
         m_groupToIds.emplace(cheat.exclusiveGroup, cheat.id);
       }
@@ -247,7 +232,6 @@ bool CheatRegistry::LoadFile(const std::filesystem::path &filepath) {
 
 bool CheatRegistry::ParseCheat(const nlohmann::json &j, CheatDef &outCheat,
                                const std::string &filename) {
-  // Required fields
   if (!j.contains("id") || !j["id"].is_string()) {
     logger::error("Cheat missing 'id' in {}", filename);
     return false;
@@ -261,7 +245,6 @@ bool CheatRegistry::ParseCheat(const nlohmann::json &j, CheatDef &outCheat,
   }
   outCheat.displayName = j["displayName"].get<std::string>();
 
-  // Parse codes - support both "code" (single) and "codes" (array)
   if (j.contains("codes") && j["codes"].is_array()) {
     for (const auto &codeJson : j["codes"]) {
       if (codeJson.is_string()) {
@@ -306,24 +289,20 @@ bool CheatRegistry::ParseCheat(const nlohmann::json &j, CheatDef &outCheat,
   }
   outCheat.mode = *mode;
 
-  // Optional fields
   if (j.contains("lockedName") && j["lockedName"].is_string()) {
     outCheat.lockedName = j["lockedName"].get<std::string>();
   } else {
     outCheat.lockedName = "?????";
   }
 
-  // Exclusive group (optional)
   if (j.contains("exclusiveGroup") && j["exclusiveGroup"].is_string()) {
     outCheat.exclusiveGroup = j["exclusiveGroup"].get<std::string>();
   }
 
-  // Start enabled (optional)
   if (j.contains("startEnabled") && j["startEnabled"].is_boolean()) {
     outCheat.startEnabled = j["startEnabled"].get<bool>();
   }
 
-  // Actions
   if (j.contains("actions")) {
     if (!j["actions"].is_array()) {
       logger::error("Cheat '{}' has non-array 'actions' field in {}",

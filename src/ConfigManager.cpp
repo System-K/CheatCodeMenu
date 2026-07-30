@@ -25,7 +25,6 @@ void ConfigManager::LoadMessages(const std::string &path) {
   _unlockAllCodes = ini.GetBoolValue("Settings", "UnlockAllCodes", false);
   logger::info("UnlockAllCodes setting: {}", _unlockAllCodes);
 
-  // Define default messages to look for
   std::vector<std::pair<std::string, std::string>> defaults = {
       {"CodeAccepted", "Code accepted!"},
       {"InvalidCode", "Invalid code."},
@@ -49,7 +48,6 @@ std::string ConfigManager::GetMessage(const std::string &key) const {
     return it->second;
   }
 
-  // Fallback defaults if not loaded or missing
   if (key == "CodeAccepted")
     return "Code accepted!";
   if (key == "InvalidCode")
@@ -65,7 +63,7 @@ std::string ConfigManager::GetMessage(const std::string &key) const {
   if (key == "CheatLocked")
     return "This cheat is locked.";
 
-  return key; // Return key as fallback if absolutely nothing found
+  return key;
 }
 
 bool ConfigManager::GetUnlockAllCodes() const {

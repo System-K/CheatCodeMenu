@@ -50,8 +50,6 @@ void HotkeyManager::RegisterSink() {
     return;
   }
 
-  HotkeyEventSink::GetSingleton(); // Ensure singleton exists
-
   auto *inputDeviceManager = RE::BSInputDeviceManager::GetSingleton();
   if (inputDeviceManager) {
     inputDeviceManager->AddEventSink(HotkeyEventSink::GetSingleton());
@@ -86,14 +84,11 @@ HotkeyEventSink::ProcessEvent(RE::InputEvent *const *a_event,
 
     auto *buttonEvent = static_cast<RE::ButtonEvent *>(event);
 
-    // Only trigger on key down (not held or released)
     if (!buttonEvent->IsDown()) {
       continue;
     }
 
-    // Check if this is our hotkey
     if (buttonEvent->GetIDCode() == *targetScanCode) {
-      // Check we're not in a menu that would conflict
       auto *ui = RE::UI::GetSingleton();
       if (ui && !ui->GameIsPaused()) {
         SendOpenMenuEvent();

@@ -9,30 +9,22 @@
 using namespace CheatCodeMenu;
 
 static void InitializeCheatSystem() {
-  // Load cheat definitions from JSON files
   CheatRegistry::GetSingleton()->LoadFromDisk();
-
-  // Initialize runtime state from definitions
   CheatStateStore::GetSingleton()->Initialize();
 }
 
 static void SKSEMessageHandler(SKSE::MessagingInterface::Message *message) {
   switch (message->type) {
   case SKSE::MessagingInterface::kDataLoaded:
-    // Load configuration
     HotkeyManager::GetSingleton()->LoadConfig();
     ConfigManager::GetSingleton()->LoadConfig();
 
-    // Initialize cheat system
     InitializeCheatSystem();
 
-    // Register hotkey input sink
     HotkeyManager::GetSingleton()->RegisterSink();
 
-    // Register System menu injector for pause menu button
     SystemMenuInjector::GetSingleton()->Register();
 
-    // Initialize things that need data
     CheatRegistry::GetSingleton()->RegisterForEvents();
 
     logger::info("CheatCodeMenu initialized successfully");
@@ -68,13 +60,8 @@ SKSEPlugin_Load(const SKSE::LoadInterface *a_skse) {
   SKSE::Init(a_skse);
   SKSE::AllocTrampoline(1 << 10);
 
-  // Register serialization callbacks
   Serialization::Register();
-
-  // Register Papyrus native functions
   SKSE::GetPapyrusInterface()->Register(PapyrusAPI::Register);
-
-  // Register for SKSE messages
   g_messaging->RegisterListener("SKSE", SKSEMessageHandler);
 
   return true;

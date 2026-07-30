@@ -8,20 +8,17 @@ namespace CheatCodeMenu::PapyrusAPI {
 constexpr std::string_view SCRIPT_NAME = "CCM_Native";
 constexpr std::string_view ENTER_CODE_KEY = "__enter_code__";
 
-// Get array of menu option labels for ShowList
 std::vector<std::string> GetMenuOptionLabels(RE::StaticFunctionTag *) {
   std::vector<std::string> labels;
 
   auto *registry = CheatRegistry::GetSingleton();
   auto *stateStore = CheatStateStore::GetSingleton();
 
-  // Check if no cheats are installed
   if (registry->GetAllIds().empty()) {
     labels.push_back("No Cheats Installed");
     return labels;
   }
 
-  // Count non-unlocked cheats (locked or hidden)
   bool hasNonUnlockedCheats = false;
   for (const auto &id : registry->GetAllIds()) {
     const auto *def = registry->GetCheat(id);
@@ -35,7 +32,6 @@ std::vector<std::string> GetMenuOptionLabels(RE::StaticFunctionTag *) {
     }
   }
 
-  // Show "Enter Code..." if there are any non-unlocked cheats
   if (hasNonUnlockedCheats) {
     labels.push_back("Enter Code...");
   }
@@ -47,11 +43,9 @@ std::vector<std::string> GetMenuOptionLabels(RE::StaticFunctionTag *) {
 
     CheatState state = stateStore->GetState(id);
 
-    // Skip hidden cheats
     if (state == CheatState::Hidden)
       continue;
 
-    // Build label
     if (state == CheatState::Unlocked) {
       if (def->mode == CheatMode::Toggle) {
         bool enabled = stateStore->IsToggleEnabled(id);
@@ -67,20 +61,17 @@ std::vector<std::string> GetMenuOptionLabels(RE::StaticFunctionTag *) {
   return labels;
 }
 
-// Get array of menu option keys parallel to labels
 std::vector<std::string> GetMenuOptionKeys(RE::StaticFunctionTag *) {
   std::vector<std::string> keys;
 
   auto *registry = CheatRegistry::GetSingleton();
   auto *stateStore = CheatStateStore::GetSingleton();
 
-  // Check if no cheats are installed
   if (registry->GetAllIds().empty()) {
-    keys.push_back(""); // Empty key for "No Cheats Installed"
+    keys.push_back("");
     return keys;
   }
 
-  // Count non-unlocked cheats (locked or hidden)
   bool hasNonUnlockedCheats = false;
   for (const auto &id : registry->GetAllIds()) {
     const auto *def = registry->GetCheat(id);
@@ -94,7 +85,6 @@ std::vector<std::string> GetMenuOptionKeys(RE::StaticFunctionTag *) {
     }
   }
 
-  // Add "Enter Code..." key if there are any non-unlocked cheats
   if (hasNonUnlockedCheats) {
     keys.push_back(std::string(ENTER_CODE_KEY));
   }
@@ -106,7 +96,6 @@ std::vector<std::string> GetMenuOptionKeys(RE::StaticFunctionTag *) {
 
     CheatState state = stateStore->GetState(id);
 
-    // Skip hidden cheats
     if (state == CheatState::Hidden)
       continue;
 
@@ -116,7 +105,6 @@ std::vector<std::string> GetMenuOptionKeys(RE::StaticFunctionTag *) {
   return keys;
 }
 
-// Submit a code and unlock matching cheats
 bool SubmitCode(RE::StaticFunctionTag *, RE::BSFixedString code) {
   if (code.empty()) {
     return false;
@@ -133,7 +121,6 @@ bool SubmitCode(RE::StaticFunctionTag *, RE::BSFixedString code) {
     return false;
   }
 
-  // Unlock all matching cheats
   for (const auto &id : matchingIds) {
     stateStore->Unlock(id);
   }
@@ -142,19 +129,16 @@ bool SubmitCode(RE::StaticFunctionTag *, RE::BSFixedString code) {
   return true;
 }
 
-// Get state of a cheat (0=locked, 1=hidden, 2=unlocked)
 int32_t GetCheatState(RE::StaticFunctionTag *, RE::BSFixedString id) {
   auto *stateStore = CheatStateStore::GetSingleton();
   CheatState state = stateStore->GetState(id.c_str());
   return static_cast<int32_t>(state);
 }
 
-// Activate a cheat
 bool ActivateCheat(RE::StaticFunctionTag *, RE::BSFixedString id) {
   return CheatExecutor::GetSingleton()->ActivateCheat(id.c_str());
 }
 
-// Check if toggle cheat is enabled
 bool IsCheatEnabled(RE::StaticFunctionTag *, RE::BSFixedString id) {
   auto *registry = CheatRegistry::GetSingleton();
   const auto *def = registry->GetCheat(id.c_str());
@@ -166,14 +150,12 @@ bool IsCheatEnabled(RE::StaticFunctionTag *, RE::BSFixedString id) {
   return CheatStateStore::GetSingleton()->IsToggleEnabled(id.c_str());
 }
 
-// Reload cheat definitions from disk
 void ReloadCheatsFromDisk(RE::StaticFunctionTag *) {
   logger::info("Reloading cheat definitions from disk");
   CheatRegistry::GetSingleton()->LoadFromDisk();
   CheatStateStore::GetSingleton()->Initialize();
 }
 
-// Check if a cheat is trigger mode (vs toggle)
 bool IsTriggerMode(RE::StaticFunctionTag *, RE::BSFixedString id) {
   auto *registry = CheatRegistry::GetSingleton();
   const auto *def = registry->GetCheat(id.c_str());
@@ -183,7 +165,6 @@ bool IsTriggerMode(RE::StaticFunctionTag *, RE::BSFixedString id) {
   return def->mode == CheatMode::Trigger;
 }
 
-// Get localized/customized message from ConfigManager
 RE::BSFixedString GetMessage(RE::StaticFunctionTag *, RE::BSFixedString key) {
   return ConfigManager::GetSingleton()->GetMessage(key.c_str());
 }

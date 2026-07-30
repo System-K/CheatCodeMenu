@@ -41,19 +41,17 @@ bool SystemMenuInjector::InjectMenuEntry() {
     return false;
   }
 
-  // Path:
-  // _root.QuestJournalFader.Menu_mc.SystemFader.Page_mc.CategoryList_mc.List_mc
   RE::GFxValue systemPage;
   if (!movie->GetVariable(
           &systemPage, "_root.QuestJournalFader.Menu_mc.SystemFader.Page_mc")) {
     logger::warn("[CCM] SystemFader.Page_mc not available (System tab may not "
                  "be active)");
-    return false; // Retry later
+    return false;
   }
 
   if (systemPage.IsUndefined()) {
     logger::warn("[CCM] SystemPage is undefined");
-    return false; // Retry later
+    return false;
   }
 
   RE::GFxValue categoryListMc;
@@ -75,9 +73,8 @@ bool SystemMenuInjector::InjectMenuEntry() {
     return false;
   }
 
-  // Find the index of $CONTROLS to insert after it
   std::uint32_t arraySize = entryList.GetArraySize();
-  std::uint32_t insertIndex = arraySize; // Default to end
+  std::uint32_t insertIndex = arraySize;
 
   for (std::uint32_t i = 0; i < arraySize; ++i) {
     RE::GFxValue entry;
@@ -86,7 +83,7 @@ bool SystemMenuInjector::InjectMenuEntry() {
       if (entry.GetMember("text", &textValue) && textValue.IsString()) {
         const char *text = textValue.GetString();
         if (text && std::strcmp(text, "$CONTROLS") == 0) {
-          insertIndex = i + 1; // Insert after CONTROLS
+          insertIndex = i + 1;
           logger::info("[CCM] Found $CONTROLS at index {}, will insert at {}",
                        i, insertIndex);
           break;
@@ -95,11 +92,9 @@ bool SystemMenuInjector::InjectMenuEntry() {
     }
   }
 
-  // Create the new entry object
   RE::GFxValue newEntry;
   movie->CreateObject(&newEntry);
 
-  // Get button text from INI
   std::string buttonTextStr = "CHEAT CODES";
 
   CSimpleIniA ini;
@@ -120,10 +115,7 @@ bool SystemMenuInjector::InjectMenuEntry() {
   RE::GFxValue isCCMValue(true);
   newEntry.SetMember("isCCM", isCCMValue);
 
-  // Insert entry at correct position (shift elements since GFxValue lacks
-  // insert)
   if (insertIndex < arraySize) {
-    // Shift elements from insertIndex to end by 1
     for (std::uint32_t i = arraySize; i > insertIndex; --i) {
       RE::GFxValue element;
       entryList.GetElement(i - 1, &element);
@@ -131,25 +123,19 @@ bool SystemMenuInjector::InjectMenuEntry() {
     }
     entryList.SetElement(insertIndex, newEntry);
   } else {
-    // Just push to end
     entryList.PushBack(newEntry);
   }
 
-  // Register C++ callback handler
   auto *callbackHandler = new CCMButtonCallback();
   RE::GFxValue callbackFunc;
   movie->CreateFunction(&callbackFunc, callbackHandler);
 
-  // Store original onCategoryButtonPress and replace with our wrapper
   RE::GFxValue originalCallback;
   if (systemPage.GetMember("onCategoryButtonPress", &originalCallback))
     systemPage.SetMember("CCM_originalOnCategoryButtonPress", originalCallback);
   systemPage.SetMember("CCM_callback", callbackFunc);
 
-  // Register callback on Flash global scope (SWF hooks button press)
   movie->SetVariable("_global.CCM_ButtonCallback", callbackFunc);
-
-  // Call InvalidateData to refresh the list
   listMc.Invoke("InvalidateData", nullptr, nullptr, 0);
 
   m_injected = true;
@@ -170,7 +156,6 @@ void SystemMenuInjector::TryInjectWithRetry(int retryCount) {
     return;
   }
 
-  // Schedule retry with delay
   logger::info("[CCM] Injection attempt {} failed, scheduling retry",
                retryCount + 1);
   auto *injector = this;
@@ -199,7 +184,6 @@ MenuEventSink::ProcessEvent(const RE::MenuOpenCloseEvent *a_event,
       logger::info("[CCM] Journal Menu opened");
       injector->TryInjectWithRetry(0);
     } else {
-      // Menu closing - reset injection state
       injector->ResetInjection();
       logger::info("[CCM] Journal Menu closed, reset injection state");
     }
@@ -211,17 +195,14 @@ MenuEventSink::ProcessEvent(const RE::MenuOpenCloseEvent *a_event,
 void CCMButtonCallback::Call(Params & /*a_params*/) {
   logger::info("[CCM] Cheat Codes button pressed!");
 
-  // Close the Journal Menu
   auto *ui = RE::UI::GetSingleton();
   if (ui) {
-    // Use UI message to close menu
     if (auto *queue = RE::UIMessageQueue::GetSingleton()) {
       queue->AddMessage(RE::JournalMenu::MENU_NAME, RE::UI_MESSAGE_TYPE::kHide,
                         nullptr);
     }
   }
 
-  // Send mod event to open Cheat Code Menu
   auto *eventSource = SKSE::GetModCallbackEventSource();
   if (eventSource) {
     SKSE::ModCallbackEvent event;

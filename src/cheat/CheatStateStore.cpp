@@ -36,7 +36,7 @@ CheatState CheatStateStore::GetState(const std::string &id) const {
     }
     return it->second.state;
   }
-  return CheatState::Locked; // Default for unknown
+  return CheatState::Locked;
 }
 
 bool CheatStateStore::IsToggleEnabled(const std::string &id) const {
@@ -88,7 +88,6 @@ void CheatStateStore::SetHasAutoActivated(const std::string &id,
 void CheatStateStore::Save(SKSE::SerializationInterface *intfc) {
   std::lock_guard<std::mutex> lock(m_mutex);
 
-  // Count entries with non-default state
   std::vector<std::pair<std::string, CheatRuntimeState>> toSave;
   auto *registry = CheatRegistry::GetSingleton();
 
@@ -97,34 +96,26 @@ void CheatStateStore::Save(SKSE::SerializationInterface *intfc) {
     if (!def)
       continue;
 
-    // Only save if state differs from default or toggle is enabled or
-    // auto-activated
     if (state.state != def->defaultState || state.toggleEnabled ||
         state.hasAutoActivated) {
       toSave.emplace_back(id, state);
     }
   }
 
-  // Write count
   uint32_t count = static_cast<uint32_t>(toSave.size());
   intfc->WriteRecordData(&count, sizeof(count));
 
-  // Write each entry
   for (const auto &[id, state] : toSave) {
-    // Write ID length and string
     uint32_t idLen = static_cast<uint32_t>(id.length());
     intfc->WriteRecordData(&idLen, sizeof(idLen));
     intfc->WriteRecordData(id.data(), idLen);
 
-    // Write state
     uint8_t stateVal = static_cast<uint8_t>(state.state);
     intfc->WriteRecordData(&stateVal, sizeof(stateVal));
 
-    // Write toggle enabled
     uint8_t toggleVal = state.toggleEnabled ? 1 : 0;
     intfc->WriteRecordData(&toggleVal, sizeof(toggleVal));
 
-    // Write hasAutoActivated
     uint8_t autoActiveVal = state.hasAutoActivated ? 1 : 0;
     intfc->WriteRecordData(&autoActiveVal, sizeof(autoActiveVal));
   }
@@ -146,7 +137,6 @@ void CheatStateStore::Load(SKSE::SerializationInterface *intfc) {
   uint32_t skipped = 0;
 
   for (uint32_t i = 0; i < count; ++i) {
-    // Read ID
     uint32_t idLen = 0;
     if (!intfc->ReadRecordData(&idLen, sizeof(idLen)))
       break;
@@ -155,12 +145,10 @@ void CheatStateStore::Load(SKSE::SerializationInterface *intfc) {
     if (!intfc->ReadRecordData(id.data(), idLen))
       break;
 
-    // Read state
     uint8_t stateVal = 0;
     if (!intfc->ReadRecordData(&stateVal, sizeof(stateVal)))
       break;
 
-    // Read toggle
     uint8_t toggleVal = 0;
     if (!intfc->ReadRecordData(&toggleVal, sizeof(toggleVal)))
       break;
@@ -169,13 +157,11 @@ void CheatStateStore::Load(SKSE::SerializationInterface *intfc) {
     if (!intfc->ReadRecordData(&autoActiveVal, sizeof(autoActiveVal)))
       break;
 
-    // Check if this cheat still exists in registry
     if (!registry->GetCheat(id)) {
       skipped++;
       continue;
     }
 
-    // Apply saved state
     auto it = m_states.find(id);
     if (it != m_states.end()) {
       it->second.state = static_cast<CheatState>(stateVal);
@@ -191,7 +177,6 @@ void CheatStateStore::Load(SKSE::SerializationInterface *intfc) {
 }
 
 void CheatStateStore::Revert(SKSE::SerializationInterface *) {
-  // Reset to defaults
   Initialize();
   logger::info("CheatStateStore reverted to defaults");
 }

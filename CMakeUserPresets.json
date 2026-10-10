@@ -1,0 +1,25 @@
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "linux-clangcl-release",
+      "displayName": "Linux cross build (clang-cl + xwin, CommonLibSSE-NG overlay)",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_MAKE_PROGRAM": "/usr/bin/ninja",
+        "CMAKE_TOOLCHAIN_FILE": "/mnt/h/dev/modding/toolchain/vcpkg/scripts/buildsystems/vcpkg.cmake",
+        "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "/mnt/h/dev/modding/toolchain/clang-cl-xwin.cmake",
+        "VCPKG_TARGET_TRIPLET": "x64-windows-static-xwin",
+        "VCPKG_OVERLAY_TRIPLETS": "/mnt/h/dev/modding/toolchain/triplets",
+        "VCPKG_OVERLAY_PORTS": "/mnt/h/dev/modding/toolchain/ports",
+        "CMAKE_MSVC_RUNTIME_LIBRARY": "MultiThreaded",
+        "XWIN_EXTRA_CXX_FLAGS": "/permissive- /Zc:preprocessor -DWIN32_LEAN_AND_MEAN -DNOMINMAX -DUNICODE -D_UNICODE -D_WIN32_WINNT=0x0A00",
+        "CMAKE_INTERPROCEDURAL_OPTIMIZATION": "OFF",
+        "COPY_BUILD": "OFF"
+      }
+    }
+  ],
+  "buildPresets": [ { "name": "linux-clangcl-release", "configurePreset": "linux-clangcl-release" } ]
+}

@@ -38,6 +38,9 @@ namespace util
 }
 
 #define DLLEXPORT __declspec(dllexport)
+#ifndef SKSEAPI  // no longer provided by CommonLibSSE-NG 11
+#define SKSEAPI __cdecl
+#endif
 
 #define RELOCATION_OFFSET(SE, AE) REL::VariantOffset(SE, AE, 0).offset()
 
